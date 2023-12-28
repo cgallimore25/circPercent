@@ -13,31 +13,41 @@
     % 'dim',  the dimension containing each component of the total
 
 % Optional Name,Value pairs:
+    % 'color', an m x 3 vector or matrix specifying RGB triplet(s)
     % 'orientation', 'horizontal' or 'vertical', for more than 1 data 
     %                series, determines whether they are plotted from left-
     %                to-right or top-to-bottom
-    % 'color', an m x 3 vector or matrix specifying RGB triplet(s)
+    % 'precision', specifies the rounding precision for text labels (i.e. 
+    %              the max number of decimal places)
+    % 'radius', specifies the radius of the circle, indirectly impacting
+    %           the width of the line arcs
     % 'scheme', 'category' or 'series', determines the coloring scheme. In
     %           one case, your 'color' matrix may represent the color you 
     %           want each common 'category' to be for all series (default).
     %           In another case, you may be specifying the base color you
     %           want your percentage components to be for each 'series'. In
     %           this option, subsequent percentages will be plotted darker
-    % 'precision', specifies the rounding precision for text labels (i.e. 
-    %              the max number of decimal places)
+
 
 % Outputs:
-% a structure of handles 'H' to the line 'arcs' and text labels ('lbls')
+% a structure of handles 'H' to the line 'arcs', text labels ('lbls'), and
+% 'colors'
 
+% Examples: 
+% see 'circPercent_demo.mlx' for usage tips and tricks
 
 % Additional notes:
 % The origin and radius are arbitrary, as the width of line arcs will be 
 % scaled as a function of radius and number of plot series, with axes 
-% removed at the end anyways. I chose (0, 0) and 3.
+% removed at the end anyways. I chose (0, 0) and 3, respectively.
 
 % I used the helper function 'getAlignmentFromAngle' from MATLAB's 'pie.m'
 % to position text labels, for which I take no credit and all rights go to
 % Clay M. Thompson 3-3-94 and The MathWorks, Inc., Copyright 1984-2022 
+
+% This function also uses 'distinguishable_colors.m' by Timothy E. Holy, 
+% for which all rights are reserved to them (Copyright (c) 2010-2011, 
+% https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)
 %--------------------------------------------------------------------------
 
 
@@ -49,10 +59,12 @@ k= 0;
 r= 3;
 
 % parse Name,Val pairs
-tmp_ori= strcmpi(varargin, 'orientation');
 tmp_col= strcmpi(varargin, 'color'); 
-tmp_sch= strcmpi(varargin, 'scheme'); 
+tmp_ori= strcmpi(varargin, 'orientation');
 tmp_pre= strcmpi(varargin, 'precision'); 
+tmp_rad= strcmpi(varargin, 'radius'); 
+tmp_sch= strcmpi(varargin, 'scheme'); 
+
 
 if any(tmp_ori);  ori= varargin{find(tmp_ori) + 1};
 else;             ori= 'horizontal';   % default horizontal
@@ -65,6 +77,9 @@ end
 if any(tmp_pre);  prec= varargin{find(tmp_pre) + 1};
 else;             prec= 2;             % default round to second decimal
 end
+
+if any(tmp_rad);  r= varargin{find(tmp_rad) + 1};
+end                          % overwrite default radius if specified
 
 % anonymous functions validating proportions & optional color matrix input
 validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
