@@ -161,15 +161,24 @@ end
 if strcmpi(ori, 'horizontal')
     h= h:(3*r+1):(3*r+1)*np-1;      % step right for horizontal series
     k= zeros(1, np); 
-else
+    r= repmat(r, 1, np); 
+elseif strcmpi(ori, 'vertical')
     h= zeros(1, np); 
     k= k:-(3*r+1):-((3*r+1)*np-1);  % step down for vertical series
+    r= repmat(r, 1, np);
+elseif strcmpi(ori, 'embedded')
+    h= zeros(1, np); 
+    k= zeros(1, np); 
+    r= 2:np+1;                      % fix at origin & increment radius
 end
 
 % pre-set ax limits
 x1= h-r-np;   x2= h+r+np;    y1= k-r-np;    y2= k+r+np;
-x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
-
+if strcmpi(ori, 'embedded')
+    x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
+else
+    x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
+end
 
 % make arc start and finish points
 a0= zeros(size(data, np_dim), 1);   % arbitrary starting point (0 degrees)
@@ -219,8 +228,8 @@ end
 
 % compute circular arcs
 for n= 1:np
-    x(n, :)= cellfun(@(t) r*cos(t) + h(n), theta(n, :), 'UniformOutput', false); 
-    y(n, :)= cellfun(@(t) r*sin(t) + k(n), theta(n, :), 'UniformOutput', false);
+    x(n, :)= cellfun(@(t) r(n)*cos(t) + h(n), theta(n, :), 'UniformOutput', false); 
+    y(n, :)= cellfun(@(t) r(n)*sin(t) + k(n), theta(n, :), 'UniformOutput', false);
 end
 
 % pre-allocate structure of graphics objects for each series
@@ -232,7 +241,11 @@ end
 % pre-allocate text coordinates & determine position
 xc=  zeros(np, nc);   yc= xc; 
 centerTheta= cellfun(@median, theta); 
-[xt, yt]= pol2cart(centerTheta, r*scF); 
+if strcmpi(ori, 'embedded')
+    [xt, yt]= pol2cart(centerTheta, r'); 
+else
+    [xt, yt]= pol2cart(centerTheta, r*scF); 
+end
 
 % plot arcs & percentages
 for n= 1:np
@@ -256,12 +269,26 @@ for n= 1:np
 
         arcs(n).series(1, j)= plot(x{n, j}, y{n, j}, '-', ...
                                    'Color', colors(j, :), ...
-                                   'LineWidth', r*(12/(np/2)));   hold on
-        lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
-                                   'HorizontalAlignment', halign, ...
-                                   'VerticalAlignment', valign);
+                                   'LineWidth', max(r)*(12/(np/2)));   hold on
+        if strcmpi(ori, 'embedded')
+            lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
+                                       'HorizontalAlignment', 'center', ...
+                                       'VerticalAlignment', 'middle'); 
+        else
+            lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
+                                       'HorizontalAlignment', halign, ...
+                                       'VerticalAlignment', valign);
+        end
     end
 end
+
+% iterate through text labels separately to place them on top
+for n= 1:np
+    uistack(lbls(n).series, 'top')
+end
+
+
+
 set(gcf, 'color', 'w')
 axis([x_lo x_hi y_lo y_hi]) 
 if np == 1
@@ -287,7 +314,7 @@ function [halign, valign] = getAlignmentFromAngle(angle)
 angle = (180/pi)*angle;
 
 % Round the angles to the nearest 45 degrees
-angle = mod(round(angle/45)*45,360);
+angle = mod(round(angle/45)*45, 360);
 
 % Determine the horizontal alignment
 if angle == 90 || angle == 270
