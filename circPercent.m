@@ -77,7 +77,6 @@ tmp_pre= strcmpi(varargin, 'precision');
 tmp_rad= strcmpi(varargin, 'innerRadius'); 
 tmp_sch= strcmpi(varargin, 'scheme'); 
 tmp_ang= strcmpi(varargin, 'startAngle');
-tmp_spc= strcmpi(varargin, 'arcSpace'); 
 tmp_prs= strcmpi(varargin, 'patchRes'); 
 
 
@@ -96,15 +95,11 @@ end
 if any(tmp_rad);  usr_r= varargin{find(tmp_rad) + 1};
     if ~isempty(usr_r) && validProps(usr_r);   r= R * usr_r;
     else;                                      r= R * inner_r; 
-    end
+    end                                % default 0.6 unless valid usr input
 end                          
 
 if any(tmp_ang);  a= varargin{find(tmp_ang) + 1};
 else;             a= 0;                % default start ang is 0 (3 o'clock)
-end
-
-if any(tmp_spc);  arc_space= varargin{find(tmp_spc) + 1}; 
-else;             arc_space= 0;        % default connects arcs
 end
 
 if any(tmp_prs);  patch_res= varargin{find(tmp_prs) + 1}; 
@@ -133,7 +128,7 @@ if any(sum(data, dim) > 1+sqrt(eps))
 end
 
 % pre-allocate cells for arcs and cartesian coordinates
-[theta, x, y]= deal(cell(np, nc)); 
+[thetas, x, y]= deal(cell(np, nc)); 
 
 % pre-allocate txt strings for later based on rounding precision
 txt= strcat(string(round(data .* 100, prec)), repmat("%", np, nc)); 
@@ -187,9 +182,11 @@ end
 
 % make arc start and finish points
 a0= deg2rad( a * ones(size(data, np_dim), 1) );   % initialize start point
-p360= data .* 360;
+p360= data .* 360;                      % data as proportion of 360 degrees
 af= deg2rad( cumsum(p360, nc_dim) + a ); 
 a0(:, 2:nc)= af(:, 1:nc-1); 
+
+[r0, rf]= ndgrid(r, R); 
 
 %--------------------------------------------------------------------------
 % Modularize this block for chosen plot object ('patch' vs 'line')
@@ -209,23 +206,24 @@ for n= 1:np
     inz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, inz{n})); % index the max non-zero comp
     ii(n)= inz{n}(loc);             % to prevent too small increment
-    theta{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res); 
-    if arc_space
-        theta{n, ii(n)}= theta{n, ii(n)}(2:end);
-    end
-    inc(n, 1)=   mean(diff(theta{n, ii(n)}));
+    thetas{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res); 
+    arcrds{n, ii(n)}= linspace(r0(n, ii(n)), rf(n, ii(n)), patch_res);
+    % if arc_space
+    %     thetas{n, ii(n)}= thetas{n, ii(n)}(2:end);
+    % end
+    inc(n, 1)=   mean(diff(thetas{n, ii(n)}));
 end
 
 % compute theta for remaining percentages using same increment
 for n= 1:np
     rest= find(~ismember(1:nc, ii(n)));
     for p= rest
-        if arc_space
-            theta{n, p}= a0(n, p)+inc(n):inc(n):af(n, p);   % leave space
-        else
+        % if arc_space
+        %     thetas{n, p}= a0(n, p)+inc(n):inc(n):af(n, p);   % leave space
+        % else
             n_pts= length( a0(n, p):inc(n):af(n, p) ); 
-            theta{n, p}= linspace(a0(n, p), af(n, p), n_pts);
-        end
+            thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts);
+        % end
     end
 end
 
@@ -239,9 +237,9 @@ if zpres    % handle case where zeros are present
     for z= 1:length(zr)
         if sum(data(zr(z), :)) == 1    
             if zc(z) > ii(zr(z))
-                theta{zr(z), zc(z)-1}(end+1)= theta{zr(z), zc(z)-1}(end)+inc(zr(z)); 
+                thetas{zr(z), zc(z)-1}(end+1)= thetas{zr(z), zc(z)-1}(end)+inc(zr(z)); 
             else
-                theta{zr(z), zc(z)+1}= [theta{zr(z), zc(z)+1}(1)-inc(zr(z)), theta{zr(z), zc(z)+1}];
+                thetas{zr(z), zc(z)+1}= [thetas{zr(z), zc(z)+1}(1)-inc(zr(z)), thetas{zr(z), zc(z)+1}];
             end
         end
     end
@@ -249,8 +247,8 @@ end
 
 % compute circular arcs
 for n= 1:np
-    x(n, :)= cellfun(@(t) R(n)*cos(t) + h(n), theta(n, :), 'UniformOutput', false); 
-    y(n, :)= cellfun(@(t) R(n)*sin(t) + k(n), theta(n, :), 'UniformOutput', false);
+    x(n, :)= cellfun(@(t) R(n)*cos(t) + h(n), thetas(n, :), 'UniformOutput', false); 
+    y(n, :)= cellfun(@(t) R(n)*sin(t) + k(n), thetas(n, :), 'UniformOutput', false);
 end
 
 % pre-allocate structure of graphics objects for each series
@@ -261,7 +259,7 @@ end
 
 % pre-allocate text coordinates & determine position
 [xc, yc]= deal(zeros(np, nc));
-centerTheta= cellfun(@median, theta); 
+centerTheta= cellfun(@median, thetas); 
 [xt, yt]= pol2cart(centerTheta, (R*scF)'); 
 
 
@@ -276,7 +274,7 @@ for n= 1:np
     % plot elements, skipping zeros (empty cells)
     for j= 1:nc
         if zpres
-            if isempty(theta{n, j})
+            if isempty(thetas{n, j})
                 continue
             end
         end
