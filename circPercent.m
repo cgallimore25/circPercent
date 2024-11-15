@@ -107,7 +107,6 @@ else;             patch_res= 300;      % default npts for largest arc
 end
 
 
-
 % if groups/series distributed along columns, transpose
 if dim ~= 2 
     data= data';
@@ -208,7 +207,6 @@ for n= 1:np
     [~, loc]= max(data(n, inz{n})); % index the max non-zero comp
     ii(n)= inz{n}(loc);             % to prevent too small increment
     thetas{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res)'; 
-    % arcrds{n, ii(n)}= linspace(r0(n, ii(n)), rf(n, ii(n)), patch_res);
     arcrds{n, ii(n)}= [repmat(r0(n, ii(n)), patch_res, 1), ...
                        repmat(rf(n, ii(n)), patch_res, 1)];
     inc(n, 1)=   mean(diff(thetas{n, ii(n)}));
@@ -253,7 +251,6 @@ end
 
 x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false); 
 y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false); 
-
 
 % pre-allocate structure of graphics objects for each series
 for s= np:-1:1
