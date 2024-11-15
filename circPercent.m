@@ -9,7 +9,10 @@
 % (Fig 4, Soula et al. 2023, https://www.nature.com/articles/s41593-023-01270-2)
 
 % Required arguments:
-    % 'data', a vector or matrix of proportions/percentages 
+    % 'data', a vector or matrix of proportions/percentages. 
+    %         regardless of vector or matrix, should be row-wise 
+    %         i.e. sub-categories should be arranged along the columns
+    %              such that the rows contain individual data series
     % 'dim',  the dimension containing each component of the total
 
 % Optional Name,Value pairs:
@@ -286,8 +289,6 @@ end
 for n= 1:np
     uistack(lbls(n).series, 'top')
 end
-
-
 
 set(gcf, 'color', 'w')
 axis([x_lo x_hi y_lo y_hi]) 
