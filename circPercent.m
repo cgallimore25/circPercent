@@ -128,7 +128,7 @@ if any(sum(data, dim) > 1+sqrt(eps))
 end
 
 % pre-allocate cells for arcs and cartesian coordinates
-[thetas, x, y]= deal(cell(np, nc)); 
+[thetas, arcrds, x, y]= deal(cell(np, nc)); 
 
 % pre-allocate txt strings for later based on rounding precision
 txt= strcat(string(round(data .* 100, prec)), repmat("%", np, nc)); 
@@ -177,7 +177,7 @@ if ~colorCat(sc, fc, nc)
 end
 
 % compute orientation dependent coordinates and axis limits
-[h, k, r, R, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np); 
+[h, k, r, R, txt_r, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np); 
 
 
 % make arc start and finish points
@@ -186,7 +186,8 @@ p360= data .* 360;                      % data as proportion of 360 degrees
 af= deg2rad( cumsum(p360, nc_dim) + a ); 
 a0(:, 2:nc)= af(:, 1:nc-1); 
 
-[r0, rf]= ndgrid(r, R); 
+r0= repmat(r, 1, nc); 
+rf= repmat(R, 1, nc); 
 
 %--------------------------------------------------------------------------
 % Modularize this block for chosen plot object ('patch' vs 'line')
@@ -210,9 +211,6 @@ for n= 1:np
     % arcrds{n, ii(n)}= linspace(r0(n, ii(n)), rf(n, ii(n)), patch_res);
     arcrds{n, ii(n)}= [repmat(r0(n, ii(n)), patch_res, 1), ...
                        repmat(rf(n, ii(n)), patch_res, 1)];
-    % if arc_space
-    %     thetas{n, ii(n)}= thetas{n, ii(n)}(2:end);
-    % end
     inc(n, 1)=   mean(diff(thetas{n, ii(n)}));
 end
 
@@ -220,14 +218,10 @@ end
 for n= 1:np
     rest= find(~ismember(1:nc, ii(n)));
     for p= rest
-        % if arc_space
-        %     thetas{n, p}= a0(n, p)+inc(n):inc(n):af(n, p);   % leave space
-        % else
             n_pts= length( a0(n, p):inc(n):af(n, p) ); 
             thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts)';
             arcrds{n, p}= [repmat(r0(n, p), n_pts, 1), ... 
                            repmat(rf(n, p), n_pts, 1)];
-        % end
     end
 end
 
@@ -270,7 +264,7 @@ end
 % pre-allocate text coordinates & determine position
 [xc, yc]= deal(zeros(np, nc));
 centerTheta= cellfun(@median, thetas); 
-[xt, yt]= pol2cart(centerTheta, (R*scF)'); 
+[xt, yt]= pol2cart(centerTheta, txt_r); 
 
 
 % plot arcs & percentages
@@ -300,10 +294,6 @@ for n= 1:np
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
 
-        % arcs(n).series(1, j)= plot(x{n, j}, y{n, j}, '-', ...
-        %                            'Color', colors(j, :), ...
-        %                            'LineWidth', max(R)*(12/(np/2)));   hold on
-
         arcs(n).series(1, j)= patch(x_vtx{n, j}, y_vtx{n, j}, colors(j, :));   hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
@@ -319,6 +309,7 @@ end
 
 set(gcf, 'color', 'w')
 axis(ax_limits) 
+
 if np == 1
     axis square
 else
@@ -335,38 +326,35 @@ end
 
 %% Helper functions--------------------------------------------------------
 
-function [h, k, r, R, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
+function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
 
 switch ori
     case 'concentric'    % fix plot at origin & increment radius
-        scF= 1;          % fix text locations on patch
         h= zeros(1, np); 
         k= zeros(1, np); 
-        r= 2:np+1;       % override any innerRadius argument
+        r= (2:np+1)';       % override any innerRadius argument
         R= r + 0.95; 
     otherwise            % scale text pos differently for multiple series
-        if np > 1;  scF= 1.25;
-        else;       scF= 1.4; 
-        end
-
-        r= repmat(r, 1, np); 
-        R= repmat(R, 1, np); 
+        r= repmat(r, np, 1); 
+        R= repmat(R, np, 1); 
 
         % adjust (h, k) for the desired orientation
         if strcmpi(ori, 'horizontal')
-            h= h:(6*r+1):(6*r+1)*np-1;       % step right for horz series
+            h= h:(5*r+1):(5*r+1)*np-1;       % step right for horz series
             k= zeros(1, np); 
         else
             h= zeros(1, np); 
-            k= k:-(6*r+1):-((6*r+1)*np-1);   % step down for vert series
+            k= k:-(5*r+1):-((5*r+1)*np-1);   % step down for vert series
         end
 end
 
 % pre-set ax limits
-x1= h-r-np;   x2= h+r+np;    y1= k-r-np;    y2= k+r+np;
+x1= h-R-np;   x2= h+R+np;    y1= k-R-np;    y2= k+R+np;
 if strcmpi(ori, 'concentric')
+    text_radius= (R + r) / 2;  % average inner & outer radii
     x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
 else
+    text_radius= R * 1.05;     % position outside the rings
     x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
 end
 
