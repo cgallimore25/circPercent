@@ -71,7 +71,9 @@ validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
 validColor= @(x) validProps(x) && size(x, 2) == 3; 
 
 % parse Name,Val pairs
-tmp_col= strcmpi(varargin, 'color'); 
+tmp_fco= strcmpi(varargin, 'faceColor'); 
+tmp_eco= strcmpi(varargin, 'edgeColor'); 
+tmp_elw= strcmpi(varargin, 'lineWidth');
 tmp_ori= strcmpi(varargin, 'orientation');
 tmp_pre= strcmpi(varargin, 'precision'); 
 tmp_rad= strcmpi(varargin, 'innerRadius'); 
@@ -106,6 +108,14 @@ if any(tmp_prs);  patch_res= varargin{find(tmp_prs) + 1};
 else;             patch_res= 300;      % default npts for largest arc
 end
 
+if any(tmp_eco);  ec= varargin{find(tmp_eco) + 1}; 
+else;             ec= 'k'; 
+end
+
+if any(tmp_elw);  lw= varargin{find(tmp_elw) + 1}; 
+else;             lw= 1; 
+end
+
 
 % if groups/series distributed along columns, transpose
 if dim ~= 2 
@@ -133,8 +143,8 @@ end
 txt= strcat(string(round(data .* 100, prec)), repmat("%", np, nc)); 
 
 % parse color / color scheme args
-if any(tmp_col)
-    col= varargin{find(tmp_col) + 1};
+if any(tmp_fco)
+    col= varargin{find(tmp_fco) + 1};
     if validColor(col)
         fc= col; 
     elseif isempty(col)
@@ -175,7 +185,7 @@ if ~colorCat(sc, fc, nc)
     end
 end
 
-% compute orientation dependent coordinates and axis limits
+% compute orientation dependent coordinates, text scaling, and axis limits
 [h, k, r, R, txt_r, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np); 
 
 
@@ -188,12 +198,6 @@ a0(:, 2:nc)= af(:, 1:nc-1);
 r0= repmat(r, 1, nc); 
 rf= repmat(R, 1, nc); 
 
-%--------------------------------------------------------------------------
-% Modularize this block for chosen plot object ('patch' vs 'line')
-% the zero check (220-222) will lie above a switch statement
-% line objects need special care for approximately proportional sampling
-% this matters less for patches, just need enough points for smoothness
-% inputs: a0, af, np, nc, arc_space
 
 % check for zeros
 test_mat= [zeros(np, 1) af];
@@ -291,7 +295,8 @@ for n= 1:np
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
 
-        arcs(n).series(1, j)= patch(x_vtx{n, j}, y_vtx{n, j}, colors(j, :));   hold on
+        arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
+                                    'EdgeColor', ec, 'LineWidth', lw);   hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'HorizontalAlignment', halign, ...
