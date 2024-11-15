@@ -206,8 +206,10 @@ for n= 1:np
     inz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, inz{n})); % index the max non-zero comp
     ii(n)= inz{n}(loc);             % to prevent too small increment
-    thetas{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res); 
-    arcrds{n, ii(n)}= linspace(r0(n, ii(n)), rf(n, ii(n)), patch_res);
+    thetas{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res)'; 
+    % arcrds{n, ii(n)}= linspace(r0(n, ii(n)), rf(n, ii(n)), patch_res);
+    arcrds{n, ii(n)}= [repmat(r0(n, ii(n)), patch_res, 1), ...
+                       repmat(rf(n, ii(n)), patch_res, 1)];
     % if arc_space
     %     thetas{n, ii(n)}= thetas{n, ii(n)}(2:end);
     % end
@@ -222,8 +224,9 @@ for n= 1:np
         %     thetas{n, p}= a0(n, p)+inc(n):inc(n):af(n, p);   % leave space
         % else
             n_pts= length( a0(n, p):inc(n):af(n, p) ); 
-            thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts);
-            arcrds{n, p}= linspace(r0(n, p), rf(n, p), n_pts);
+            thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts)';
+            arcrds{n, p}= [repmat(r0(n, p), n_pts, 1), ... 
+                           repmat(rf(n, p), n_pts, 1)];
         % end
     end
 end
@@ -252,10 +255,9 @@ for n= 1:np
     [x(n, :), y(n, :)]= cellfun(cartConv, thetas(n, :), arcrds(n, :), 'UniformOutput', false);
 end
 
-% for n= 1:np
-%     x(n, :)= cellfun(@(t) R(n)*cos(t) + h(n), thetas(n, :), 'UniformOutput', false); 
-%     y(n, :)= cellfun(@(t) R(n)*sin(t) + k(n), thetas(n, :), 'UniformOutput', false);
-% end
+x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false); 
+y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false); 
+
 
 % pre-allocate structure of graphics objects for each series
 for s= np:-1:1
