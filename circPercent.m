@@ -120,7 +120,10 @@ if any(sum(data, dim) > 1+sqrt(eps))
     data(ix2n, :)= data(ix2n, :) ./ sum(data(ix2n, :), dim);
 end
 
-% make txt strings for later based on rounding precision
+% pre-allocate cells for arcs and cartesian coordinates
+[theta, x, y]= deal(cell(np, nc)); 
+
+% pre-allocate txt strings for later based on rounding precision
 txt= strcat(string(round(data .* 100, prec)), repmat("%", np, nc)); 
 
 % parse color / color scheme args
@@ -166,6 +169,10 @@ if ~colorCat(sc, fc, nc)
     end
 end
 
+%--------------------------------------------------------------------------
+% Modularize this block using Helper function & change to switch/case
+% inputs: ori, h, k, r, np
+
 % scale factor 'scF' for text locations
 if strcmpi(ori, 'concentric')
     scF= 1; 
@@ -199,6 +206,8 @@ if strcmpi(ori, 'concentric')
 else
     x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
 end
+%--------------------------------------------------------------------------
+
 
 % make arc start and finish points
 a0= deg2rad( a * ones(size(data, np_dim), 1) );   % initialize start point
@@ -206,13 +215,20 @@ p360= data .* 360;
 af= deg2rad( cumsum(p360, nc_dim) + a ); 
 a0(:, 2:nc)= af(:, 1:nc-1); 
 
+%--------------------------------------------------------------------------
+% Modularize this block for chosen plot object ('patch' vs 'line')
+% the zero check (220-222) will lie above a switch statement
+% line objects need special care for approximately proportional sampling
+% this matters less for patches, just need enough points for smoothness
+% inputs: a0, af, np, nc, arc_space
+
 % check for zeros
 test_mat= [zeros(np, 1) af];
 zpos=  diff(test_mat, [], nc_dim) == 0; 
 zpres= any(any(zpos));
 
 % compute theta to evaluate arc for max non-zero percentage
-theta= cell(np, nc); x= cell(np, nc);  y= cell(np, nc); inc= zeros(np, 1); 
+inc= zeros(np, 1); 
 for n= 1:np
     inz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, inz{n})); % index the max non-zero comp
@@ -236,6 +252,8 @@ for n= 1:np
         end
     end
 end
+
+%--------------------------------------------------------------------------
 
 if zpres    % handle case where zeros are present
     [zr, zc]= find(zpos);     % index zeros
@@ -266,7 +284,7 @@ for s= np:-1:1
 end
 
 % pre-allocate text coordinates & determine position
-xc=  zeros(np, nc);   yc= xc; 
+[xc, yc]= deal(zeros(np, nc));
 centerTheta= cellfun(@median, theta); 
 [xt, yt]= pol2cart(centerTheta, (r*scF)'); 
 
