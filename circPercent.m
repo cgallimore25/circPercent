@@ -62,7 +62,13 @@ function H = circPercent(data, dim, varargin)
 % defaults -- center origin (h, k) and radius (r)
 h= 0;
 k= 0;
-r= 3;
+R= 10;
+
+inner_r= 0.6;
+
+% anonymous functions validating proportions & optional color matrix input
+validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
+validColor= @(x) validProps(x) && size(x, 2) == 3; 
 
 % parse Name,Val pairs
 tmp_col= strcmpi(varargin, 'color'); 
@@ -86,8 +92,14 @@ if any(tmp_pre);  prec= varargin{find(tmp_pre) + 1};
 else;             prec= 2;             % default round to second decimal
 end
 
-if any(tmp_rad);  r= varargin{find(tmp_rad) + 1};
-end                          % overwrite default radius if specified
+if any(tmp_rad);  inner_r= varargin{find(tmp_rad) + 1};
+    if ~isempty(inner_r)
+        if validProps(inner_r)
+            r= R * inner_r;
+        end
+    end
+else;             r= R * inner_r; 
+end                          
 
 if any(tmp_ang);  a= varargin{find(tmp_ang) + 1};
 else;             a= 0;                % default start ang is 0 (3 o'clock)
@@ -97,9 +109,7 @@ if any(tmp_spc);  arc_space= varargin{find(tmp_spc) + 1};
 else;             arc_space= 0;        % default connects arcs
 end
 
-% anonymous functions validating proportions & optional color matrix input
-validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
-validColor= @(x) validProps(x) && size(x, 2) == 3; 
+
 
 % if groups distributed along columns, transpose
 if dim ~= 2 
@@ -170,7 +180,7 @@ if ~colorCat(sc, fc, nc)
 end
 
 % compute orientation dependent coordinates and axis limits
-[h, k, r, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, np); 
+[h, k, r, R, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np); 
 
 
 % make arc start and finish points
@@ -237,8 +247,8 @@ end
 
 % compute circular arcs
 for n= 1:np
-    x(n, :)= cellfun(@(t) r(n)*cos(t) + h(n), theta(n, :), 'UniformOutput', false); 
-    y(n, :)= cellfun(@(t) r(n)*sin(t) + k(n), theta(n, :), 'UniformOutput', false);
+    x(n, :)= cellfun(@(t) R(n)*cos(t) + h(n), theta(n, :), 'UniformOutput', false); 
+    y(n, :)= cellfun(@(t) R(n)*sin(t) + k(n), theta(n, :), 'UniformOutput', false);
 end
 
 % pre-allocate structure of graphics objects for each series
@@ -250,7 +260,7 @@ end
 % pre-allocate text coordinates & determine position
 [xc, yc]= deal(zeros(np, nc));
 centerTheta= cellfun(@median, theta); 
-[xt, yt]= pol2cart(centerTheta, (r*scF)'); 
+[xt, yt]= pol2cart(centerTheta, (R*scF)'); 
 
 
 % plot arcs & percentages
@@ -282,7 +292,7 @@ for n= 1:np
 
         arcs(n).series(1, j)= plot(x{n, j}, y{n, j}, '-', ...
                                    'Color', colors(j, :), ...
-                                   'LineWidth', max(r)*(12/(np/2)));   hold on
+                                   'LineWidth', max(R)*(12/(np/2)));   hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'HorizontalAlignment', halign, ...
@@ -313,28 +323,30 @@ end
 
 %% Helper functions--------------------------------------------------------
 
-function [h, k, r, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, np)
+function [h, k, r, R, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
 
 switch ori
     case 'concentric'    % fix plot at origin & increment radius
         scF= 1;          % fix text locations on patch
         h= zeros(1, np); 
         k= zeros(1, np); 
-        r= 2:np+1;      
+        r= 2:np+1;       % override any innerRadius argument
+        R= r + 0.95; 
     otherwise            % scale text pos differently for multiple series
         if np > 1;  scF= 1.25;
         else;       scF= 1.4; 
         end
 
+        r= repmat(r, 1, np); 
+        R= repmat(R, 1, np); 
+
         % adjust (h, k) for the desired orientation
         if strcmpi(ori, 'horizontal')
             h= h:(3*r+1):(3*r+1)*np-1;       % step right for horz series
             k= zeros(1, np); 
-            r= repmat(r, 1, np); 
         else
             h= zeros(1, np); 
             k= k:-(3*r+1):-((3*r+1)*np-1);   % step down for vert series
-            r= repmat(r, 1, np);
         end
 end
 
