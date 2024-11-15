@@ -253,6 +253,8 @@ end
 cartConv= @(t, r) pol2cart(t, r); 
 for n= 1:np
     [x(n, :), y(n, :)]= cellfun(cartConv, thetas(n, :), arcrds(n, :), 'UniformOutput', false);
+    x(n, :)= cellfun(@(t) t + h(n), x(n , :), 'UniformOutput', false);
+    y(n, :)= cellfun(@(r) r + k(n), y(n , :), 'UniformOutput', false);
 end
 
 x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false); 
@@ -298,9 +300,11 @@ for n= 1:np
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
 
-        arcs(n).series(1, j)= plot(x{n, j}, y{n, j}, '-', ...
-                                   'Color', colors(j, :), ...
-                                   'LineWidth', max(R)*(12/(np/2)));   hold on
+        % arcs(n).series(1, j)= plot(x{n, j}, y{n, j}, '-', ...
+        %                            'Color', colors(j, :), ...
+        %                            'LineWidth', max(R)*(12/(np/2)));   hold on
+
+        arcs(n).series(1, j)= patch(x_vtx{n, j}, y_vtx{n, j}, colors(j, :));   hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'HorizontalAlignment', halign, ...
@@ -350,11 +354,11 @@ switch ori
 
         % adjust (h, k) for the desired orientation
         if strcmpi(ori, 'horizontal')
-            h= h:(3*r+1):(3*r+1)*np-1;       % step right for horz series
+            h= h:(6*r+1):(6*r+1)*np-1;       % step right for horz series
             k= zeros(1, np); 
         else
             h= zeros(1, np); 
-            k= k:-(3*r+1):-((3*r+1)*np-1);   % step down for vert series
+            k= k:-(6*r+1):-((6*r+1)*np-1);   % step down for vert series
         end
 end
 
