@@ -60,11 +60,11 @@
 function H = circPercent(data, dim, varargin)
 
 % defaults -- center origin (h, k) and radius (r)
+inner_r= 0.6;
 h= 0;
 k= 0;
 R= 10;
-
-inner_r= 0.6;
+r= R * inner_r; 
 
 % anonymous functions validating proportions & optional color matrix input
 validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
@@ -92,13 +92,10 @@ if any(tmp_pre);  prec= varargin{find(tmp_pre) + 1};
 else;             prec= 2;             % default round to second decimal
 end
 
-if any(tmp_rad);  inner_r= varargin{find(tmp_rad) + 1};
-    if ~isempty(inner_r)
-        if validProps(inner_r)
-            r= R * inner_r;
-        end
+if any(tmp_rad);  usr_r= varargin{find(tmp_rad) + 1};
+    if ~isempty(usr_r) && validProps(usr_r);   r= R * usr_r;
+    else;                                      r= R * inner_r; 
     end
-else;             r= R * inner_r; 
 end                          
 
 if any(tmp_ang);  a= varargin{find(tmp_ang) + 1};
@@ -111,7 +108,7 @@ end
 
 
 
-% if groups distributed along columns, transpose
+% if groups/series distributed along columns, transpose
 if dim ~= 2 
     data= data';
     dim= 2; 
