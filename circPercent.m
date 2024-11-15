@@ -25,7 +25,7 @@
     %                to-right or top-to-bottom
     % 'precision', specifies the rounding precision for text labels (i.e. 
     %              the max number of decimal places)
-    % 'radius', specifies the radius of the circle, indirectly impacting
+    % 'innerRadius', specifies the radius of the circle, indirectly impacting
     %           the width of the line arcs
     % 'scheme', 'category' or 'series', determines the coloring scheme. In
     %           one case, your 'color' matrix may represent the color you 
@@ -68,7 +68,7 @@ r= 3;
 tmp_col= strcmpi(varargin, 'color'); 
 tmp_ori= strcmpi(varargin, 'orientation');
 tmp_pre= strcmpi(varargin, 'precision'); 
-tmp_rad= strcmpi(varargin, 'radius'); 
+tmp_rad= strcmpi(varargin, 'innerRadius'); 
 tmp_sch= strcmpi(varargin, 'scheme'); 
 tmp_ang= strcmpi(varargin, 'startAngle');
 tmp_spc= strcmpi(varargin, 'arcSpace'); 
