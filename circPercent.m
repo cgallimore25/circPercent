@@ -10,10 +10,13 @@
 
 % Required arguments:
     % 'data', a vector or matrix of proportions/percentages. 
-    %         regardless of vector or matrix, should be row-wise 
-    %         i.e. sub-categories should be arranged along the columns
-    %              such that the rows contain individual data series
-    % 'dim',  the dimension containing each component of the total
+
+    % 'dim',  the dimension containing each sub-cat/ component of the total
+    %         e.g. if data series are distributed along the rows, such that
+    %              sub-categories / components are arranged along the 
+    %              columns, your second argument would be '2'
+    %              if data series are distributed along columns and
+    %              sub-cats along the rows, your second arg would be '1'
 
 % Optional Name,Value pairs:
     % 'color', an m x 3 vector or matrix specifying RGB triplet(s)
@@ -153,11 +156,15 @@ if ~colorCat(sc, fc, nc)
     end
 end
 
-
-if np > 1  % if plotting a series of percentages, scale radius differently
-    scF= 1.25;
+% scale factor 'scF' for text locations
+if strcmpi(ori, 'concentric')
+    scF= 1; 
 else
-    scF= 1.4; 
+    if np > 1  % if plotting multiple series, scale radius differently
+        scF= 1.25;
+    else
+        scF= 1.4; 
+    end
 end
 
 % adjust (h, k) for the desired orientation
@@ -169,7 +176,7 @@ elseif strcmpi(ori, 'vertical')
     h= zeros(1, np); 
     k= k:-(3*r+1):-((3*r+1)*np-1);  % step down for vertical series
     r= repmat(r, 1, np);
-elseif strcmpi(ori, 'embedded')
+elseif strcmpi(ori, 'concentric')
     h= zeros(1, np); 
     k= zeros(1, np); 
     r= 2:np+1;                      % fix at origin & increment radius
@@ -177,7 +184,7 @@ end
 
 % pre-set ax limits
 x1= h-r-np;   x2= h+r+np;    y1= k-r-np;    y2= k+r+np;
-if strcmpi(ori, 'embedded')
+if strcmpi(ori, 'concentric')
     x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
 else
     x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
@@ -244,11 +251,8 @@ end
 % pre-allocate text coordinates & determine position
 xc=  zeros(np, nc);   yc= xc; 
 centerTheta= cellfun(@median, theta); 
-if strcmpi(ori, 'embedded')
-    [xt, yt]= pol2cart(centerTheta, r'); 
-else
-    [xt, yt]= pol2cart(centerTheta, r*scF); 
-end
+[xt, yt]= pol2cart(centerTheta, (r*scF)'); 
+
 
 % plot arcs & percentages
 for n= 1:np
@@ -268,24 +272,26 @@ for n= 1:np
 
         xc(n, j)= xt(n, j) + h(n);
         yc(n, j)= yt(n, j) + k(n); 
-        [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
+
+        % determine text alignment based on orientation
+        if strcmpi(ori, 'concentric')
+            halign= 'center';
+            valign= 'middle'; 
+        else
+            [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
+        end
 
         arcs(n).series(1, j)= plot(x{n, j}, y{n, j}, '-', ...
                                    'Color', colors(j, :), ...
                                    'LineWidth', max(r)*(12/(np/2)));   hold on
-        if strcmpi(ori, 'embedded')
-            lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
-                                       'HorizontalAlignment', 'center', ...
-                                       'VerticalAlignment', 'middle'); 
-        else
-            lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
-                                       'HorizontalAlignment', halign, ...
-                                       'VerticalAlignment', valign);
-        end
+
+        lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
+                                   'HorizontalAlignment', halign, ...
+                                   'VerticalAlignment', valign);
     end
 end
 
-% iterate through text labels separately to place them on top
+% iterate through text labels of each series to place them on top
 for n= 1:np
     uistack(lbls(n).series, 'top')
 end
