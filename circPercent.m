@@ -103,7 +103,7 @@ else;             a= 0;                % default start ang is 0 (3 o'clock)
 end
 
 if any(tmp_prs);  patch_res= varargin{find(tmp_prs) + 1}; 
-else;             patch_res= 200;      % default npts for largest arc
+else;             patch_res= 300;      % default npts for largest arc
 end
 
 
@@ -223,6 +223,7 @@ for n= 1:np
         % else
             n_pts= length( a0(n, p):inc(n):af(n, p) ); 
             thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts);
+            arcrds{n, p}= linspace(r0(n, p), rf(n, p), n_pts);
         % end
     end
 end
@@ -246,10 +247,15 @@ if zpres    % handle case where zeros are present
 end
 
 % compute circular arcs
+cartConv= @(t, r) pol2cart(t, r); 
 for n= 1:np
-    x(n, :)= cellfun(@(t) R(n)*cos(t) + h(n), thetas(n, :), 'UniformOutput', false); 
-    y(n, :)= cellfun(@(t) R(n)*sin(t) + k(n), thetas(n, :), 'UniformOutput', false);
+    [x(n, :), y(n, :)]= cellfun(cartConv, thetas(n, :), arcrds(n, :), 'UniformOutput', false);
 end
+
+% for n= 1:np
+%     x(n, :)= cellfun(@(t) R(n)*cos(t) + h(n), thetas(n, :), 'UniformOutput', false); 
+%     y(n, :)= cellfun(@(t) R(n)*sin(t) + k(n), thetas(n, :), 'UniformOutput', false);
+% end
 
 % pre-allocate structure of graphics objects for each series
 for s= np:-1:1
