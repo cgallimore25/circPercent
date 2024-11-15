@@ -70,7 +70,8 @@ tmp_ori= strcmpi(varargin, 'orientation');
 tmp_pre= strcmpi(varargin, 'precision'); 
 tmp_rad= strcmpi(varargin, 'radius'); 
 tmp_sch= strcmpi(varargin, 'scheme'); 
-tmp_ang= strcmpi(varargin, 'startangle');
+tmp_ang= strcmpi(varargin, 'startAngle');
+tmp_spc= strcmpi(varargin, 'arcSpace'); 
 
 
 if any(tmp_ori);  ori= varargin{find(tmp_ori) + 1};
@@ -90,6 +91,10 @@ end                          % overwrite default radius if specified
 
 if any(tmp_ang);  a= varargin{find(tmp_ang) + 1};
 else;             a= 0;                % default start ang is 0 (3 o'clock)
+end
+
+if any(tmp_spc);  arc_space= varargin{find(tmp_spc) + 1}; 
+else;             arc_space= 0;        % default connects arcs
 end
 
 % anonymous functions validating proportions & optional color matrix input
@@ -196,7 +201,7 @@ else
 end
 
 % make arc start and finish points
-a0= deg2rad( a * ones(size(data, np_dim), 1) );   % arbitrary starting point (0 degrees)
+a0= deg2rad( a * ones(size(data, np_dim), 1) );   % initialize start point
 p360= data .* 360;
 af= deg2rad( cumsum(p360, nc_dim) + a ); 
 a0(:, 2:nc)= af(:, 1:nc-1); 
@@ -213,7 +218,9 @@ for n= 1:np
     [~, loc]= max(data(n, inz{n})); % index the max non-zero comp
     ii(n)= inz{n}(loc);             % to prevent too small increment
     theta{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), 300); 
-    theta{n, ii(n)}= theta{n, ii(n)}(2:end);
+    if arc_space
+        theta{n, ii(n)}= theta{n, ii(n)}(2:end);
+    end
     inc(n, 1)=   mean(diff(theta{n, ii(n)}));
 end
 
@@ -221,7 +228,12 @@ end
 for n= 1:np
     rest= find(~ismember(1:nc, ii(n)));
     for p= rest
-        theta{n, p}= a0(n, p)+inc(n):inc(n):af(n, p);
+        if arc_space
+            theta{n, p}= a0(n, p)+inc(n):inc(n):af(n, p);   % leave space
+        else
+            n_pts= length( a0(n, p):inc(n):af(n, p) ); 
+            theta{n, p}= linspace(a0(n, p), af(n, p), n_pts);
+        end
     end
 end
 
@@ -296,7 +308,7 @@ for n= 1:np
     end
 end
 
-% iterate through text labels of each series to place them on top
+% position text labels on top of arcs
 for n= 1:np
     uistack(lbls(n).series, 'top')
 end
