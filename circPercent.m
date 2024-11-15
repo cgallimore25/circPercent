@@ -70,6 +70,7 @@ tmp_ori= strcmpi(varargin, 'orientation');
 tmp_pre= strcmpi(varargin, 'precision'); 
 tmp_rad= strcmpi(varargin, 'radius'); 
 tmp_sch= strcmpi(varargin, 'scheme'); 
+tmp_ang= strcmpi(varargin, 'startangle');
 
 
 if any(tmp_ori);  ori= varargin{find(tmp_ori) + 1};
@@ -86,6 +87,10 @@ end
 
 if any(tmp_rad);  r= varargin{find(tmp_rad) + 1};
 end                          % overwrite default radius if specified
+
+if any(tmp_ang);  a= varargin{find(tmp_ang) + 1};
+else;             a= 0;                % default start ang is 0 (3 o'clock)
+end
 
 % anonymous functions validating proportions & optional color matrix input
 validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
@@ -191,9 +196,9 @@ else
 end
 
 % make arc start and finish points
-a0= zeros(size(data, np_dim), 1);   % arbitrary starting point (0 degrees)
+a0= deg2rad( a * ones(size(data, np_dim), 1) );   % arbitrary starting point (0 degrees)
 p360= data .* 360;
-af= deg2rad( cumsum(p360, nc_dim) + a0 ); 
+af= deg2rad( cumsum(p360, nc_dim) + a ); 
 a0(:, 2:nc)= af(:, 1:nc-1); 
 
 % check for zeros
