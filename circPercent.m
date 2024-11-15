@@ -169,44 +169,8 @@ if ~colorCat(sc, fc, nc)
     end
 end
 
-%--------------------------------------------------------------------------
-% Modularize this block using Helper function & change to switch/case
-% inputs: ori, h, k, r, np
-
-% scale factor 'scF' for text locations
-if strcmpi(ori, 'concentric')
-    scF= 1; 
-else
-    if np > 1  % if plotting multiple series, scale radius differently
-        scF= 1.25;
-    else
-        scF= 1.4; 
-    end
-end
-
-% adjust (h, k) for the desired orientation
-if strcmpi(ori, 'horizontal')
-    h= h:(3*r+1):(3*r+1)*np-1;      % step right for horizontal series
-    k= zeros(1, np); 
-    r= repmat(r, 1, np); 
-elseif strcmpi(ori, 'vertical')
-    h= zeros(1, np); 
-    k= k:-(3*r+1):-((3*r+1)*np-1);  % step down for vertical series
-    r= repmat(r, 1, np);
-elseif strcmpi(ori, 'concentric')
-    h= zeros(1, np); 
-    k= zeros(1, np); 
-    r= 2:np+1;                      % fix at origin & increment radius
-end
-
-% pre-set ax limits
-x1= h-r-np;   x2= h+r+np;    y1= k-r-np;    y2= k+r+np;
-if strcmpi(ori, 'concentric')
-    x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
-else
-    x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
-end
-%--------------------------------------------------------------------------
+% compute orientation dependent coordinates and axis limits
+[h, k, r, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, np); 
 
 
 % make arc start and finish points
@@ -332,7 +296,7 @@ for n= 1:np
 end
 
 set(gcf, 'color', 'w')
-axis([x_lo x_hi y_lo y_hi]) 
+axis(ax_limits) 
 if np == 1
     axis square
 else
@@ -347,8 +311,46 @@ H.color= colors;
 end
 
 
-%% Helper functions
+%% Helper functions--------------------------------------------------------
 
+function [h, k, r, scF, ax_limits]= getOriDependentCoords(ori, h, k, r, np)
+
+switch ori
+    case 'concentric'    % fix plot at origin & increment radius
+        scF= 1;          % fix text locations on patch
+        h= zeros(1, np); 
+        k= zeros(1, np); 
+        r= 2:np+1;      
+    otherwise            % scale text pos differently for multiple series
+        if np > 1;  scF= 1.25;
+        else;       scF= 1.4; 
+        end
+
+        % adjust (h, k) for the desired orientation
+        if strcmpi(ori, 'horizontal')
+            h= h:(3*r+1):(3*r+1)*np-1;       % step right for horz series
+            k= zeros(1, np); 
+            r= repmat(r, 1, np); 
+        else
+            h= zeros(1, np); 
+            k= k:-(3*r+1):-((3*r+1)*np-1);   % step down for vert series
+            r= repmat(r, 1, np);
+        end
+end
+
+% pre-set ax limits
+x1= h-r-np;   x2= h+r+np;    y1= k-r-np;    y2= k+r+np;
+if strcmpi(ori, 'concentric')
+    x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
+else
+    x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
+end
+
+ax_limits= [x_lo x_hi y_lo y_hi]; 
+
+end
+
+%--------------------------------------------------------------------------
 function [halign, valign] = getAlignmentFromAngle(angle)
 % Determine the text label alignment based on the angle around the circle.
 
