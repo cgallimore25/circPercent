@@ -78,6 +78,7 @@ tmp_rad= strcmpi(varargin, 'innerRadius');
 tmp_sch= strcmpi(varargin, 'scheme'); 
 tmp_ang= strcmpi(varargin, 'startAngle');
 tmp_spc= strcmpi(varargin, 'arcSpace'); 
+tmp_prs= strcmpi(varargin, 'patchRes'); 
 
 
 if any(tmp_ori);  ori= varargin{find(tmp_ori) + 1};
@@ -104,6 +105,10 @@ end
 
 if any(tmp_spc);  arc_space= varargin{find(tmp_spc) + 1}; 
 else;             arc_space= 0;        % default connects arcs
+end
+
+if any(tmp_prs);  patch_res= varargin{find(tmp_prs) + 1}; 
+else;             patch_res= 200;      % default npts for largest arc
 end
 
 
@@ -204,7 +209,7 @@ for n= 1:np
     inz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, inz{n})); % index the max non-zero comp
     ii(n)= inz{n}(loc);             % to prevent too small increment
-    theta{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), 300); 
+    theta{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res); 
     if arc_space
         theta{n, ii(n)}= theta{n, ii(n)}(2:end);
     end
