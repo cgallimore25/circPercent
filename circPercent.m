@@ -234,7 +234,7 @@ end
 
 %--------------------------------------------------------------------------
 % handle unlikely cases
-[thetas, arcrds]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos, mnz); 
+[thetas]= handleSpecialZeroCases(data, thetas, zpres, zpos, mnz); 
 
 % compute circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
@@ -359,7 +359,7 @@ ax_limits= [x_lo x_hi y_lo y_hi];
 end
 
 %--------------------------------------------------------------------------
-function [thetas, arcrds]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos, max_nonzero_ix)
+function [thetas]= handleSpecialZeroCases(data, thetas, zpres, zpos, max_nonzero_ix)
 
 if zpres    % handle case where zeros are present
     [z_row, z_col]= find(zpos);     % index zeros
@@ -368,14 +368,12 @@ if zpres    % handle case where zeros are present
     % else, skip the percentage, producing a partial pie
     [zr, ix]= sort(z_row);
     zc= z_col(ix); 
-    for i= 1:length(zr)
+    for i= 1:length(zr)             % for rows with zeros
         if sum(data(zr(i), :)) == 1    
             if zc(i) > max_nonzero_ix(zr(i))
                 thetas{zr(i), zc(i)-1}(end)= thetas{zr(i), zc(i)-1}(1);
-                % thetas{zr(z), zc(z)-1}(end+1)= thetas{zr(z), zc(z)-1}(end)+inc(zr(z)); 
-            % else
-            %     thetas{zr(i), zc(i)+1}= [thetas{zr(i), zc(i)+1}(1), thetas{zr(i), zc(i)+1}];
-            %     arcrds{zr(i), zc(i)+1}= [arcrds{zr(i), zc(i)+1}(1), arcrds{zr(i), zc(i)+1}];
+            else
+                thetas{zr(i), zc(i)+1}(end)= thetas{zr(i), zc(i)+1}(1);
             end
         else
             thetas{zr(i), zc(i)}= repmat(thetas{zr(i), zc(i)}, 1, 2); 
