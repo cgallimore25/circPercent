@@ -212,9 +212,9 @@ zpres= any(any(zpos));
 % compute theta to evaluate arc for max non-zero percentage
 inc= zeros(np, 1); 
 for n= 1:np
-    inz{n}= find(~zpos(n, :)); 
-    [~, loc]= max(data(n, inz{n})); % index the max non-zero comp
-    ii(n)= inz{n}(loc);             % to prevent too small increment
+    ix_nonz{n}= find(~zpos(n, :)); 
+    [~, loc]= max(data(n, ix_nonz{n})); % index the max non-zero comp
+    ii(n)= ix_nonz{n}(loc);             % to prevent too small increment
     thetas{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res)'; 
     arcrds{n, ii(n)}= [repmat(r0(n, ii(n)), patch_res, 1), ...
                        repmat(rf(n, ii(n)), patch_res, 1)];
@@ -233,26 +233,8 @@ for n= 1:np
 end
 
 %--------------------------------------------------------------------------
-
-if zpres    % handle case where zeros are present
-    [zr, zc]= find(zpos);     % index zeros
-    % if data already sums to 1 (i.e., one component accounts for 100%),
-    % then complete the circle
-    % else, skip the percentage, producing a partial pie
-    for z= 1:length(zr)
-        if sum(data(zr(z), :)) == 1    
-            if zc(z) > ii(zr(z))
-                thetas{zr(z), zc(z)-1}(end)= thetas{zr(z), zc(z)-1}(1);
-                % arcrds{zr(z), zc(z)-1}(end+1, :)= arcrds{zr(z), zc(z)-1}(end); 
-            else
-                thetas{zr(z), zc(z)+1}= [thetas{zr(z), zc(z)+1}(1)-inc(zr(z)), thetas{zr(z), zc(z)+1}];
-                arcrds{zr(z), zc(z)+1}= [arcrds{zr(z), zc(z)+1}(1), arcrds{zr(z), zc(z)+1}];
-            end
-        else
-            thetas{zr(z), zc(z)}= repmat(thetas{zr(z), zc(z)}, 1, 2); 
-        end
-    end
-end
+% handle unlikely cases
+[thetas, arcrds, untarnished_circle]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos); 
 
 % compute circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
@@ -262,6 +244,7 @@ for n= 1:np
     y(n, :)= cellfun(@(r) r + k(n), y(n , :), 'UniformOutput', false);
 end
 
+% reshape all to single column and "close" the data
 x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false); 
 y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false); 
 
@@ -374,6 +357,34 @@ else
 end
 
 ax_limits= [x_lo x_hi y_lo y_hi]; 
+
+end
+
+%--------------------------------------------------------------------------
+function [thetas, arcrds, fill100]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos)
+
+fill100= false; 
+
+if zpres    % handle case where zeros are present
+    [zr, zc]= find(zpos);     % index zeros
+    % if data already sums to 1 (i.e., one component accounts for 100%),
+    % then complete the circle
+    % else, skip the percentage, producing a partial pie
+    for z= 1:length(zr)
+        if sum(data(zr(z), :)) == 1    
+            if zc(z) > ii(zr(z))
+                fill100= true;
+                thetas{zr(z), zc(z)-1}(end)= thetas{zr(z), zc(z)-1}(1);
+                % thetas{zr(z), zc(z)-1}(end+1)= thetas{zr(z), zc(z)-1}(end)+inc(zr(z)); 
+            else
+                thetas{zr(z), zc(z)+1}= [thetas{zr(z), zc(z)+1}(1)-inc(zr(z)), thetas{zr(z), zc(z)+1}];
+                arcrds{zr(z), zc(z)+1}= [arcrds{zr(z), zc(z)+1}(1), arcrds{zr(z), zc(z)+1}];
+            end
+        else
+            thetas{zr(z), zc(z)}= repmat(thetas{zr(z), zc(z)}, 1, 2); 
+        end
+    end
+end
 
 end
 
