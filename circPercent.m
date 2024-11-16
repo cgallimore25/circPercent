@@ -234,7 +234,7 @@ end
 
 %--------------------------------------------------------------------------
 % handle unlikely cases
-[thetas, arcrds, untarnished_circle]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos); 
+[thetas, arcrds]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos); 
 
 % compute circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
@@ -289,9 +289,6 @@ for n= 1:np
 
         arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
                                     'EdgeColor', ec, 'LineWidth', lw);   hold on
-        % arcs(n).series(1, j)= polyshape(x{n, j}(:), y{n, j}(:));   hold on
-        % arcs(n).series(1, j)= polyshape(x_vtx{n, j}(1:end-1), y_vtx{n, j}(1:end-1));   hold on
-        % , 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'color', tc, ...
@@ -361,9 +358,7 @@ ax_limits= [x_lo x_hi y_lo y_hi];
 end
 
 %--------------------------------------------------------------------------
-function [thetas, arcrds, fill100]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos)
-
-fill100= false; 
+function [thetas, arcrds]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos)
 
 if zpres    % handle case where zeros are present
     [zr, zc]= find(zpos);     % index zeros
@@ -373,7 +368,6 @@ if zpres    % handle case where zeros are present
     for z= 1:length(zr)
         if sum(data(zr(z), :)) == 1    
             if zc(z) > ii(zr(z))
-                fill100= true;
                 thetas{zr(z), zc(z)-1}(end)= thetas{zr(z), zc(z)-1}(1);
                 % thetas{zr(z), zc(z)-1}(end+1)= thetas{zr(z), zc(z)-1}(end)+inc(zr(z)); 
             else
