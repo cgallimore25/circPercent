@@ -329,7 +329,7 @@ switch ori
         h= zeros(1, np); 
         k= zeros(1, np); 
         r= (2:np+1)';       % override any innerRadius argument
-        R= r + 0.95; 
+        R= r + 0.975; 
     otherwise            % scale text pos differently for multiple series
         r= repmat(r, np, 1); 
         R= repmat(R, np, 1); 
