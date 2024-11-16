@@ -73,6 +73,7 @@ validColor= @(x) validProps(x) && size(x, 2) == 3;
 % parse Name,Val pairs
 tmp_fco= strcmpi(varargin, 'faceColor'); 
 tmp_eco= strcmpi(varargin, 'edgeColor'); 
+tmp_txc= strcmpi(varargin, 'textColor'); 
 tmp_elw= strcmpi(varargin, 'lineWidth');
 tmp_ori= strcmpi(varargin, 'orientation');
 tmp_pre= strcmpi(varargin, 'precision'); 
@@ -110,6 +111,10 @@ end
 
 if any(tmp_eco);  ec= varargin{find(tmp_eco) + 1}; 
 else;             ec= 'k'; 
+end
+
+if any(tmp_txc);  tc= varargin{find(tmp_txc) + 1}; 
+else;             tc= 'k'; 
 end
 
 if any(tmp_elw);  lw= varargin{find(tmp_elw) + 1}; 
@@ -220,10 +225,10 @@ end
 for n= 1:np
     rest= find(~ismember(1:nc, ii(n)));
     for p= rest
-            n_pts= length( a0(n, p):inc(n):af(n, p) ); 
-            thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts)';
-            arcrds{n, p}= [repmat(r0(n, p), n_pts, 1), ... 
-                           repmat(rf(n, p), n_pts, 1)];
+        n_pts= length( a0(n, p):inc(n):af(n, p) ); 
+        thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts)';
+        arcrds{n, p}= [repmat(r0(n, p), n_pts, 1), ... 
+                       repmat(rf(n, p), n_pts, 1)];
     end
 end
 
@@ -237,10 +242,14 @@ if zpres    % handle case where zeros are present
     for z= 1:length(zr)
         if sum(data(zr(z), :)) == 1    
             if zc(z) > ii(zr(z))
-                thetas{zr(z), zc(z)-1}(end+1)= thetas{zr(z), zc(z)-1}(end)+inc(zr(z)); 
+                thetas{zr(z), zc(z)-1}(end)= thetas{zr(z), zc(z)-1}(1);
+                % arcrds{zr(z), zc(z)-1}(end+1, :)= arcrds{zr(z), zc(z)-1}(end); 
             else
                 thetas{zr(z), zc(z)+1}= [thetas{zr(z), zc(z)+1}(1)-inc(zr(z)), thetas{zr(z), zc(z)+1}];
+                arcrds{zr(z), zc(z)+1}= [arcrds{zr(z), zc(z)+1}(1), arcrds{zr(z), zc(z)+1}];
             end
+        else
+            thetas{zr(z), zc(z)}= repmat(thetas{zr(z), zc(z)}, 1, 2); 
         end
     end
 end
@@ -297,8 +306,12 @@ for n= 1:np
 
         arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
                                     'EdgeColor', ec, 'LineWidth', lw);   hold on
+        % arcs(n).series(1, j)= polyshape(x{n, j}(:), y{n, j}(:));   hold on
+        % arcs(n).series(1, j)= polyshape(x_vtx{n, j}(1:end-1), y_vtx{n, j}(1:end-1));   hold on
+        % , 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
+                                   'color', tc, ...
                                    'HorizontalAlignment', halign, ...
                                    'VerticalAlignment', valign);
     end
