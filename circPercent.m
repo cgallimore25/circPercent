@@ -214,16 +214,16 @@ inc= zeros(np, 1);
 for n= 1:np
     ix_nonz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, ix_nonz{n})); % index the max non-zero comp
-    ii(n)= ix_nonz{n}(loc);             % to prevent too small increment
-    thetas{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res)'; 
-    arcrds{n, ii(n)}= [repmat(r0(n, ii(n)), patch_res, 1), ...
-                       repmat(rf(n, ii(n)), patch_res, 1)];
-    inc(n, 1)=   mean(diff(thetas{n, ii(n)}));
+    mnz(n)= ix_nonz{n}(loc);             % to prevent too small increment
+    thetas{n, mnz(n)}= linspace(a0(n, mnz(n)), af(n, mnz(n)), patch_res)'; 
+    arcrds{n, mnz(n)}= [repmat(r0(n, mnz(n)), patch_res, 1), ...
+                       repmat(rf(n, mnz(n)), patch_res, 1)];
+    inc(n, 1)=   mean(diff(thetas{n, mnz(n)}));
 end
 
 % compute theta for remaining percentages using comparable increment
 for n= 1:np
-    rest= find(~ismember(1:nc, ii(n)));
+    rest= find(~ismember(1:nc, mnz(n)));
     for p= rest
         n_pts= length( a0(n, p):inc(n):af(n, p) ); 
         thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts)';
@@ -234,7 +234,7 @@ end
 
 %--------------------------------------------------------------------------
 % handle unlikely cases
-[thetas, arcrds, untarnished_circle]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos); 
+[thetas, arcrds, untarnished_circle, pr, pc]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos, mnz); 
 
 % compute circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
@@ -287,12 +287,20 @@ for n= 1:np
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
 
-        arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
-                                    'EdgeColor', ec, 'LineWidth', lw);   hold on
-        % arcs(n).series(1, j)= polyshape(x{n, j}(:), y{n, j}(:));   hold on
-        % arcs(n).series(1, j)= polyshape(x_vtx{n, j}(1:end-1), y_vtx{n, j}(1:end-1));   hold on
-        % , 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw
-
+        if untarnished_circle
+            arcs(n).series(1, j)= plot(x{pr(n), pc(n)}(:, j), y{pr(n), pc(n)}(:, j),...
+                                       'Color', ec, 'LineWidth', lw); hold on; 
+            if j == nc
+                xf= [x{pr(n), pc(n)}(:, j-1); x{pr(n), pc(n)}(:, j)];
+                inBetween= [y{pr(n), pc(n)}(:, j-1); y{pr(n), pc(n)}(:, j)];
+                fill(xf, inBetween, colors(pc(n), :));
+            end
+        else
+            arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, ...
+                                        'FaceColor', colors(j, :), ...
+                                        'EdgeColor', ec, 'LineWidth', lw);   hold on
+        end
+        
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'color', tc, ...
                                    'HorizontalAlignment', halign, ...
@@ -361,27 +369,32 @@ ax_limits= [x_lo x_hi y_lo y_hi];
 end
 
 %--------------------------------------------------------------------------
-function [thetas, arcrds, fill100]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos)
+function [thetas, arcrds, fill100, pr, pc]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos, max_non_zero_ix)
 
 fill100= false; 
 
 if zpres    % handle case where zeros are present
-    [zr, zc]= find(zpos);     % index zeros
+    [z_row, z_col]= find(zpos);     % index zeros
+    [p_row, p_col]= find(~zpos); 
     % if data already sums to 1 (i.e., one component accounts for 100%),
     % then complete the circle
     % else, skip the percentage, producing a partial pie
-    for z= 1:length(zr)
-        if sum(data(zr(z), :)) == 1    
-            if zc(z) > ii(zr(z))
+    [zr, ix]= sort(z_row);
+    zc= z_col(ix); 
+    [pr, px]= sort(p_row);
+    pc= p_col(px); 
+    for i= 1:length(zr)       % for rows with zeros
+        if sum(data(zr(i), :)) == 1    
+            if zc(i) > max_non_zero_ix(zr(i))
                 fill100= true;
-                thetas{zr(z), zc(z)-1}(end)= thetas{zr(z), zc(z)-1}(1);
+                thetas{zr(i), zc(i)-1}(end)= thetas{zr(i), zc(i)-1}(1);
                 % thetas{zr(z), zc(z)-1}(end+1)= thetas{zr(z), zc(z)-1}(end)+inc(zr(z)); 
-            else
-                thetas{zr(z), zc(z)+1}= [thetas{zr(z), zc(z)+1}(1)-inc(zr(z)), thetas{zr(z), zc(z)+1}];
-                arcrds{zr(z), zc(z)+1}= [arcrds{zr(z), zc(z)+1}(1), arcrds{zr(z), zc(z)+1}];
+            % else
+            %     thetas{zr(i), zc(i)+1}= [thetas{zr(i), zc(i)+1}(1)-inc(zr(i)), thetas{zr(i), zc(i)+1}];
+            %     arcrds{zr(i), zc(i)+1}= [arcrds{zr(i), zc(i)+1}(1), arcrds{zr(i), zc(i)+1}];
             end
         else
-            thetas{zr(z), zc(z)}= repmat(thetas{zr(z), zc(z)}, 1, 2); 
+            thetas{zr(i), zc(i)}= repmat(thetas{zr(i), zc(i)}, 1, 2); 
         end
     end
 end
