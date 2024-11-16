@@ -221,7 +221,7 @@ for n= 1:np
     inc(n, 1)=   mean(diff(thetas{n, ii(n)}));
 end
 
-% compute theta for remaining percentages using same increment
+% compute theta for remaining percentages using comparable increment
 for n= 1:np
     rest= find(~ismember(1:nc, ii(n)));
     for p= rest
@@ -355,11 +355,11 @@ switch ori
 
         % adjust (h, k) for the desired orientation
         if strcmpi(ori, 'horizontal')
-            h= h:(5*r+1):(5*r+1)*np-1;       % step right for horz series
+            h= h:(3*R+1):(3*R+1)*np-1;       % step right for horz series
             k= zeros(1, np); 
         else
             h= zeros(1, np); 
-            k= k:-(5*r+1):-((5*r+1)*np-1);   % step down for vert series
+            k= k:-(3*R+1):-((3*R+1)*np-1);   % step down for vert series
         end
 end
 
