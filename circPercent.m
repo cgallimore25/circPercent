@@ -214,16 +214,16 @@ inc= zeros(np, 1);
 for n= 1:np
     ix_nonz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, ix_nonz{n})); % index the max non-zero comp
-    ii(n)= ix_nonz{n}(loc);             % to prevent too small increment
-    thetas{n, ii(n)}= linspace(a0(n, ii(n)), af(n, ii(n)), patch_res)'; 
-    arcrds{n, ii(n)}= [repmat(r0(n, ii(n)), patch_res, 1), ...
-                       repmat(rf(n, ii(n)), patch_res, 1)];
-    inc(n, 1)=   mean(diff(thetas{n, ii(n)}));
+    mnz(n)= ix_nonz{n}(loc);             % to prevent too small increment
+    thetas{n, mnz(n)}= linspace(a0(n, mnz(n)), af(n, mnz(n)), patch_res)'; 
+    arcrds{n, mnz(n)}= [repmat(r0(n, mnz(n)), patch_res, 1), ...
+                        repmat(rf(n, mnz(n)), patch_res, 1)];
+    inc(n, 1)=   mean(diff(thetas{n, mnz(n)}));
 end
 
 % compute theta for remaining percentages using comparable increment
 for n= 1:np
-    rest= find(~ismember(1:nc, ii(n)));
+    rest= find(~ismember(1:nc, mnz(n)));
     for p= rest
         n_pts= length( a0(n, p):inc(n):af(n, p) ); 
         thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts)';
@@ -234,7 +234,7 @@ end
 
 %--------------------------------------------------------------------------
 % handle unlikely cases
-[thetas, arcrds, untarnished_circle]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos); 
+[thetas]= handleSpecialZeroCases(data, thetas, zpres, zpos, mnz); 
 
 % compute circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
@@ -249,10 +249,10 @@ x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false)
 y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false); 
 
 % pre-allocate structure of graphics objects for each series
-for s= np:-1:1
-    arcs(s).series= gobjects(1, nc);
-    lbls(s).series= gobjects(1, nc); 
-end
+% for s= np:-1:1
+%     arcs(s).series= gobjects(1, nc);
+%     lbls(s).series= gobjects(1, nc); 
+% end
 
 % pre-allocate text coordinates & determine position
 [xc, yc]= deal(zeros(np, nc));
@@ -287,11 +287,13 @@ for n= 1:np
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
 
-        arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
-                                    'EdgeColor', ec, 'LineWidth', lw);   hold on
-        % arcs(n).series(1, j)= polyshape(x{n, j}(:), y{n, j}(:));   hold on
-        % arcs(n).series(1, j)= polyshape(x_vtx{n, j}(1:end-1), y_vtx{n, j}(1:end-1));   hold on
-        % , 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw
+        % arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
+        %                             'EdgeColor', ec, 'LineWidth', lw);   hold on
+
+        % a working polyshape function -- NOTE: cannot pre-allocate
+        % gobjects for this
+        arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
+        plot(arcs(n).series(1, j)); hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'color', tc, ...
@@ -361,27 +363,24 @@ ax_limits= [x_lo x_hi y_lo y_hi];
 end
 
 %--------------------------------------------------------------------------
-function [thetas, arcrds, fill100]= handleSpecialZeroCases(data, thetas, arcrds, zpres, zpos)
-
-fill100= false; 
+function [thetas]= handleSpecialZeroCases(data, thetas, zpres, zpos, max_nonzero_ix)
 
 if zpres    % handle case where zeros are present
-    [zr, zc]= find(zpos);     % index zeros
+    [z_row, z_col]= find(zpos);     % index zeros
     % if data already sums to 1 (i.e., one component accounts for 100%),
     % then complete the circle
     % else, skip the percentage, producing a partial pie
-    for z= 1:length(zr)
-        if sum(data(zr(z), :)) == 1    
-            if zc(z) > ii(zr(z))
-                fill100= true;
-                thetas{zr(z), zc(z)-1}(end)= thetas{zr(z), zc(z)-1}(1);
-                % thetas{zr(z), zc(z)-1}(end+1)= thetas{zr(z), zc(z)-1}(end)+inc(zr(z)); 
+    [zr, ix]= sort(z_row);
+    zc= z_col(ix); 
+    for i= 1:length(zr)             % for rows with zeros
+        if sum(data(zr(i), :)) == 1    
+            if zc(i) > max_nonzero_ix(zr(i))
+                thetas{zr(i), zc(i)-1}(end)= thetas{zr(i), zc(i)-1}(1);
             else
-                thetas{zr(z), zc(z)+1}= [thetas{zr(z), zc(z)+1}(1)-inc(zr(z)), thetas{zr(z), zc(z)+1}];
-                arcrds{zr(z), zc(z)+1}= [arcrds{zr(z), zc(z)+1}(1), arcrds{zr(z), zc(z)+1}];
+                thetas{zr(i), zc(i)+1}(end)= thetas{zr(i), zc(i)+1}(1);
             end
         else
-            thetas{zr(z), zc(z)}= repmat(thetas{zr(z), zc(z)}, 1, 2); 
+            thetas{zr(i), zc(i)}= repmat(thetas{zr(i), zc(i)}, 1, 2); 
         end
     end
 end
