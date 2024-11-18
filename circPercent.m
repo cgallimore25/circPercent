@@ -68,7 +68,7 @@ r= R * inner_r;
 
 % anonymous functions validating proportions & optional color matrix input
 validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
-validColor= @(x) validProps(x) && size(x, 2) == 3; 
+validColor= @(x) (validProps(x) && size(x, 2) == 3) || all(x >= 1) && size(x, 2) == 1; 
 
 % parse Name,Val pairs
 tmp_fco= strcmpi(varargin, 'faceColor'); 
@@ -233,8 +233,9 @@ for n= 1:np
 end
 
 %--------------------------------------------------------------------------
-% handle unlikely cases
+% handle unlikely cases in the data (e.g. zeros, one component is 100, etc)
 [thetas, perfect_circle]= handleSpecialZeroCases(data, thetas, zpres, zpos, mnz); 
+
 
 % compute circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
@@ -295,9 +296,16 @@ for n= 1:np
             arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
             plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw); hold on
         else
-            arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
-                                        'EdgeColor', ec, 'LineWidth', lw);   hold on
+            arcs(n).series(1, j)= patch('Faces', 1:length(x_vtx{n, j}), ...
+                                    'Vertices', [x_vtx{n, j} y_vtx{n, j}], ...
+                                    'FaceVertexCData', colors(j, :), ...
+                                    'FaceColor', 'flat', ...
+                                    'EdgeColor', ec, 'LineWidth', lw);   hold on
         end
+
+        % arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, ...
+        %                             'FaceColor', colors(j, :), ...
+        %                             'EdgeColor', ec, 'LineWidth', lw);   hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'color', tc, ...
@@ -332,12 +340,15 @@ end
 
 function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
 
+% r= inner radius
+% R= outer radius
+
 switch ori
     case 'concentric'    % fix plot at origin & increment radius
         h= zeros(1, np); 
         k= zeros(1, np); 
         r= (2:np+1)';       % override any innerRadius argument
-        R= r + 0.95; 
+        R= r + 0.975; 
     otherwise            % scale text pos differently for multiple series
         r= repmat(r, np, 1); 
         R= repmat(R, np, 1); 
@@ -381,6 +392,7 @@ if zpres    % handle case where zeros are present
     for i= 1:length(zr)             % for rows with zeros
         if sum(data(zr(i), :)) == 1  
             fill100= true; 
+
             if zc(i) > max_nonzero_ix(zr(i))
                 thetas{zr(i), zc(i)-1}(end)= thetas{zr(i), zc(i)-1}(1);
             else
