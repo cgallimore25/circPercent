@@ -292,8 +292,8 @@ for n= 1:np
 
         % a working polyshape function -- NOTE: cannot pre-allocate
         % gobjects for this
-        arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
-        plot(arcs(n).series(1, j)); hold on
+        arcs(n).series(1, j)= polybuffer( polyshape([x_vtx{n, j} y_vtx{n, j}]), 0.1, 'JointType','round');   
+        plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw); hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'color', tc, ...
