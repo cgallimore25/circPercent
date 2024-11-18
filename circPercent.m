@@ -234,7 +234,7 @@ end
 
 %--------------------------------------------------------------------------
 % handle unlikely cases
-[thetas]= handleSpecialZeroCases(data, thetas, zpres, zpos, mnz); 
+[thetas, perfect_circle]= handleSpecialZeroCases(data, thetas, zpres, zpos, mnz); 
 
 % compute circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
@@ -249,10 +249,12 @@ x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false)
 y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false); 
 
 % pre-allocate structure of graphics objects for each series
-% for s= np:-1:1
-%     arcs(s).series= gobjects(1, nc);
-%     lbls(s).series= gobjects(1, nc); 
-% end
+if ~perfect_circle
+    for s= np:-1:1
+        arcs(s).series= gobjects(1, nc);
+        lbls(s).series= gobjects(1, nc); 
+    end
+end
 
 % pre-allocate text coordinates & determine position
 [xc, yc]= deal(zeros(np, nc));
@@ -287,13 +289,15 @@ for n= 1:np
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
 
-        % arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
-        %                             'EdgeColor', ec, 'LineWidth', lw);   hold on
-
         % a working polyshape function -- NOTE: cannot pre-allocate
         % gobjects for this
-        arcs(n).series(1, j)= polybuffer( polyshape([x_vtx{n, j} y_vtx{n, j}]), 0.1, 'JointType','round');   
-        plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw); hold on
+        if perfect_circle
+            arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
+            plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw); hold on
+        else
+            arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, 'FaceColor', colors(j, :), ...
+                                        'EdgeColor', ec, 'LineWidth', lw);   hold on
+        end
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'color', tc, ...
@@ -363,7 +367,9 @@ ax_limits= [x_lo x_hi y_lo y_hi];
 end
 
 %--------------------------------------------------------------------------
-function [thetas]= handleSpecialZeroCases(data, thetas, zpres, zpos, max_nonzero_ix)
+function [thetas, fill100]= handleSpecialZeroCases(data, thetas, zpres, zpos, max_nonzero_ix)
+
+fill100= false; 
 
 if zpres    % handle case where zeros are present
     [z_row, z_col]= find(zpos);     % index zeros
@@ -373,7 +379,8 @@ if zpres    % handle case where zeros are present
     [zr, ix]= sort(z_row);
     zc= z_col(ix); 
     for i= 1:length(zr)             % for rows with zeros
-        if sum(data(zr(i), :)) == 1    
+        if sum(data(zr(i), :)) == 1  
+            fill100= true; 
             if zc(i) > max_nonzero_ix(zr(i))
                 thetas{zr(i), zc(i)-1}(end)= thetas{zr(i), zc(i)-1}(1);
             else
