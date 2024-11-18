@@ -68,7 +68,7 @@ r= R * inner_r;
 
 % anonymous functions validating proportions & optional color matrix input
 validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
-validColor= @(x) validProps(x) && size(x, 2) == 3; 
+validColor= @(x) (validProps(x) && size(x, 2) == 3) || all(x >= 1) && size(x, 2) == 1; 
 
 % parse Name,Val pairs
 tmp_fco= strcmpi(varargin, 'faceColor'); 
@@ -287,9 +287,15 @@ for n= 1:np
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
 
-        arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, ...
-                                    'FaceColor', colors(j, :), ...
+        arcs(n).series(1, j)= patch('Faces', 1:length(x_vtx{n, j}), ...
+                                    'Vertices', [x_vtx{n, j} y_vtx{n, j}], ...
+                                    'FaceVertexCData', colors(j, :), ...
+                                    'FaceColor', 'flat', ...
                                     'EdgeColor', ec, 'LineWidth', lw);   hold on
+
+        % arcs(n).series(1, j)= patch('XData', x_vtx{n, j}, 'YData', y_vtx{n, j}, ...
+        %                             'FaceColor', colors(j, :), ...
+        %                             'EdgeColor', ec, 'LineWidth', lw);   hold on
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
                                    'color', tc, ...
@@ -323,6 +329,9 @@ end
 %% Helper functions--------------------------------------------------------
 
 function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
+
+% r= inner radius
+% R= outer radius
 
 switch ori
     case 'concentric'    % fix plot at origin & increment radius
