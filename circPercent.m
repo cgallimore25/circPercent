@@ -251,6 +251,7 @@ end
 x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false); 
 y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false); 
 
+
 % pre-allocate structure of graphics objects for each series
 if ~perfect_circle
     for s= np:-1:1
@@ -286,8 +287,7 @@ for n= 1:np
 
         % determine text alignment based on orientation
         if strcmpi(ori, 'concentric')
-            halign= 'center';
-            valign= 'middle'; 
+            halign= 'center'; valign= 'middle'; 
         else
             [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
         end
@@ -298,11 +298,10 @@ for n= 1:np
             arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
             plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw); hold on
         else
-            arcs(n).series(1, j)= patch('Faces', 1:length(x_vtx{n, j}), ...
-                                    'Vertices', [x_vtx{n, j} y_vtx{n, j}], ...
-                                    'FaceVertexCData', colors(j, :), ...
-                                    'FaceColor', 'flat', ...
-                                    'EdgeColor', ec, 'LineWidth', lw);   hold on
+            arcs(n).series(1, j)= patch('Faces',    1:length(x_vtx{n, j}), ...
+                                        'Vertices', [x_vtx{n, j} y_vtx{n, j}], ...
+                                        'FaceVertexCData', colors(j, :), ...
+                                        'FaceColor', 'flat', 'EdgeColor', ec, 'LineWidth', lw);   hold on
         end
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
@@ -338,14 +337,14 @@ end
 
 function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
 
-% r= inner radius
-% R= outer radius
+% r = inner radius
+% R = outer radius
 
 switch ori
     case 'concentric'    % fix plot at origin & increment radius
         h= zeros(1, np); 
         k= zeros(1, np); 
-        r= (2:np+1)';       % override any innerRadius argument
+        r= (2:np+1)';    % override any innerRadius argument
         R= r + 0.975; 
     otherwise            % scale text pos differently for multiple series
         r= repmat(r, np, 1); 
