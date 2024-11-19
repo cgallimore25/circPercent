@@ -64,19 +64,19 @@ h= 0;
 k= 0;
 
 % input parser defaults
-def.R=  10; 
-def.r=  0.6; 
-def.d=  2; 
-def.FC= []; 
-def.FA= 1;    % face alpha
-def.EC= 'k';  % edge color
-def.TC= 'k';  % text color
-def.LW= 1;    % line width
-def.SA= 0;    % start angle 3 o'clock ('90' would be midnight)
-def.RP= 2;    % rounding precision 
-def.PR= 300;  % resolution of 1 arc of largest patch
-def.OR= 'horizontal'; 
-def.CS= 'category'; 
+def.R=  10;             % outer radius
+def.r=  0.6;            % inner radius as a proportion of outer radius
+def.d=  2;              % dim to operate on
+def.FC= [];             % face color; resolved in local function
+def.FA= 1;              % face alpha
+def.EC= 'k';            % edge color
+def.TC= 'k';            % text color
+def.LW= 1;              % line width
+def.SA= 0;              % start angle 3 o'clock ('90' would be midnight)
+def.RP= 2;              % rounding precision 
+def.PR= 300;            % resolution of 1 arc of largest patch
+def.OR= 'horizontal';   % orientation (has no effect if vector input)
+def.CS= 'category';     % color scheme
 def.ori_types= {'horizontal', 'vertical', 'concentric'};
 def.sch_types= {'category', 'series'}; 
 
@@ -98,6 +98,10 @@ tc=   p.Results.textColor;
 prec= p.Results.precision; 
 res=  p.Results.patchRes; 
 
+% force vector inputs to be row-wise
+if f.validArray(data)
+    data= data(:)'; 
+end
 
 % if groups/series distributed along columns, transpose
 if dim ~= 2 
