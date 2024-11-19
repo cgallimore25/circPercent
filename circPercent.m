@@ -84,19 +84,19 @@ def.sch_types= {'category', 'series'};
 [p, f]= validateInputs(data, def, varargin);
 
 % assign parsed user inputs
-dim= p.Results.dim;
-R=   p.Results.outerRadius; 
-r=   R * p.Results.innerRadius;
-a=   p.Results.startAngle; 
-ori= p.Results.orientation; 
-sc=  p.Results.scheme; 
-col= p.Results.faceColor; 
-fa=  p.Results.faceAlpha;
-lw=  p.Results.lineWidth;
-ec=  p.Results.edgeColor;
-tc=  p.Results.textColor; 
+dim=  p.Results.dim;
+R=    p.Results.outerRadius; 
+r=    R * p.Results.innerRadius;
+a=    p.Results.startAngle; 
+ori=  p.Results.orientation; 
+sc=   p.Results.scheme; 
+col=  p.Results.faceColor; 
+fa=   p.Results.faceAlpha;
+lw=   p.Results.lineWidth;
+ec=   p.Results.edgeColor;
+tc=   p.Results.textColor; 
 prec= p.Results.precision; 
-patch_res= p.Results.patchRes; 
+res=  p.Results.patchRes; 
 
 
 % if groups/series distributed along columns, transpose
@@ -128,61 +128,8 @@ end
 % pre-allocate txt strings for later based on rounding precision
 txt= strcat(string(round(data .* 100, prec)), repmat("%", np, nc)); 
 
-% parse color / color scheme args
-if isempty(col)
-    if strcmpi(sc, 'series')
-        fc= distinguishable_colors(np*2);
-        fc= fc(np+1:end, :);
-    else
-        fc= distinguishable_colors(nc*2);
-        fc= fc(nc+1:end, :);
-    end
-else
-    if f.validColV(col) || isstring(col)
-        fc= col(:);
-    elseif iscellstr(col)
-        fc= vertcat(col{:});
-    end
-
-end
-
-% if any(tmp_fco)
-%     col= varargin{find(tmp_fco) + 1};
-%     if f.validFCol(col)
-%         fc= col; 
-%     elseif isempty(col)
-%         if strcmpi(sc, 'series')
-%             fc= distinguishable_colors(np*2);
-%             fc= fc(np+1:end, :);
-%         else
-%             fc= distinguishable_colors(nc*2);
-%             fc= fc(nc+1:end, :);
-%         end
-%     else
-%         error('make sure your color matrix is either mx3 or left empty []')
-%     end
-% else
-%     fc= distinguishable_colors(nc*2);
-%     fc= fc(nc+1:end, :);
-% end
-
-
-% resolve potential color / scheme input discrepancies
-if ~f.colorCat(sc, fc, nc)
-    if strcmpi(sc, 'series') && size(fc, 1) ~= np
-        warning(['series scheme was indicated, but a color matrix was either unspecified or ' ...
-                 'dim 1 of color matrix didnt match the number of data series(' num2str(np) ').' ...
-                 ' making new colors as default.'])
-        fc= distinguishable_colors(np*2);
-        fc= fc(np+1:end, :);
-        
-    elseif strcmpi(sc, 'category') 
-        warning(['category scheme was indicated, but dim 1 of color matrix didnt match the number ' ...
-                 'of categories(' num2str(nc) '). making new colors as default.'])
-        fc= distinguishable_colors(nc*2);
-        fc= fc(nc+1:end, :);
-    end
-end
+% correct potential mismatches in user facecolor / scheme input
+fc= resolveColorSchemeMismatch(col, sc, np, nc, f);
 
 % compute orientation dependent coordinates, text scaling, and axis limits
 [h, k, r, R, txt_r, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np); 
@@ -209,9 +156,9 @@ for n= 1:np
     ix_nonz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, ix_nonz{n})); % index the max non-zero comp
     mnz(n)= ix_nonz{n}(loc);             % to prevent too small increment
-    thetas{n, mnz(n)}= linspace(a0(n, mnz(n)), af(n, mnz(n)), patch_res)'; 
-    arcrds{n, mnz(n)}= [repmat(r0(n, mnz(n)), patch_res, 1), ...
-                        repmat(rf(n, mnz(n)), patch_res, 1)];
+    thetas{n, mnz(n)}= linspace(a0(n, mnz(n)), af(n, mnz(n)), res)'; 
+    arcrds{n, mnz(n)}= [repmat(r0(n, mnz(n)), res, 1), ...
+                        repmat(rf(n, mnz(n)), res, 1)];
     inc(n, 1)=   mean(diff(thetas{n, mnz(n)}));
 end
 
@@ -226,12 +173,12 @@ for n= 1:np
     end
 end
 
-%--------------------------------------------------------------------------
+
 % handle unlikely cases in the data (e.g. zeros, one component is 100, etc)
 [thetas, perfect_circle]= handleSpecialZeroCases(data, thetas, zpres, zpos, mnz); 
 
 
-% compute circular arcs
+% finally compute the circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
 for n= 1:np
     [x(n, :), y(n, :)]= cellfun(cartConv, thetas(n, :), arcrds(n, :), 'UniformOutput', false);
@@ -365,6 +312,46 @@ addParameter(p, 'patchRes', defaults.PR, f.validDim);
 
 % parse and assign all inputs
 parse(p, data, varargs{:});
+
+end
+
+%--------------------------------------------------------------------------
+function facecolor= resolveColorSchemeMismatch(color, sc, n_pcts, n_cats, fxns)
+
+% parse color / color scheme args
+if isempty(color)
+    if strcmpi(sc, 'series')
+        facecolor= distinguishable_colors(n_pcts*2);
+        facecolor= facecolor(n_pcts+1:end, :);
+    else
+        facecolor= distinguishable_colors(n_cats*2);
+        facecolor= facecolor(n_cats+1:end, :);
+    end
+else
+    if fxns.validColV(color) || isstring(color)
+        facecolor= color(:);
+    elseif iscellstr(color)
+        facecolor= vertcat(color{:});
+    end
+
+end
+
+% resolve potential color / scheme input discrepancies
+if ~fxns.colorCat(sc, facecolor, n_cats)
+    if strcmpi(sc, 'series') && size(facecolor, 1) ~= n_pcts
+        warning(['series scheme was indicated, but a color matrix was either unspecified or ' ...
+                 'dim 1 of color matrix didnt match the number of data series(' num2str(n_pcts) ').' ...
+                 ' making new colors as default.'])
+        facecolor= distinguishable_colors(n_pcts*2);
+        facecolor= facecolor(n_pcts+1:end, :);
+        
+    elseif strcmpi(sc, 'category') 
+        warning(['category scheme was indicated, but dim 1 of color matrix didnt match the number ' ...
+                 'of categories(' num2str(n_cats) '). making new colors as default.'])
+        facecolor= distinguishable_colors(n_cats*2);
+        facecolor= facecolor(n_cats+1:end, :);
+    end
+end
 
 end
 
