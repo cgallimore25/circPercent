@@ -57,28 +57,29 @@
 %--------------------------------------------------------------------------
 
 
-function H = circPercent(data, dim, varargin)
+function H = circPercent(data, varargin)
 
 % Initialize input parser here / and or modularize inside a function
 % input parser defaults
 
-% def_R=  10; 
-% def_r=  0.6; 
-% % def_FC= 
-% def_FA= 1;    % face alpha
-% def_EC= 'k';  % edge color
-% def_TC= 'k';  % text color
-% def_LW= 1;    % line width
-% def_SA= 0;    % start angle 3 o'clock ('90' would be midnight)
-% def_RP= 2;    % rounding precision 
-% def_PR= 300;  % resolution of 1 arc of largest patch
-% def_OR= 'horizontal'; 
-% def_CS= 'category'; 
-% 
-% expected_ori_types= {'horizontal', 'vertical', 'concentric'};
-% expected_sch_types= {'category', 'series'}; 
-% 
-% p= inputParser; 
+def_R=  10; 
+def_r=  0.6; 
+def_d=  2; 
+def_FC= []; 
+def_FA= 1;    % face alpha
+def_EC= 'k';  % edge color
+def_TC= 'k';  % text color
+def_LW= 1;    % line width
+def_SA= 0;    % start angle 3 o'clock ('90' would be midnight)
+def_RP= 2;    % rounding precision 
+def_PR= 300;  % resolution of 1 arc of largest patch
+def_OR= 'horizontal'; 
+def_CS= 'category'; 
+
+expected_ori_types= {'horizontal', 'vertical', 'concentric'};
+expected_sch_types= {'category', 'series'}; 
+
+p= inputParser; 
 
 
 % defaults -- center origin (h, k) and radius (r)
@@ -90,49 +91,50 @@ r= R * inner_r;
 
 % anonymous validation functions
 scalarNum=  @(x) isnumeric(x) && isscalar(x);
-isNonNeg=   @(x) all(x >= 0); 
-validData=  @(x) (isnumeric(x) || islogical(x)) && isreal(x) && isNonNeg(x); 
+isNonNeg=   @(x) all(all(x >= 0)); 
+validData=  @(x) all((isnumeric(x) | islogical(x))) && isreal(x) && isNonNeg(x); 
 validDim=   @(x) scalarNum(x) && isNonNeg(x);
 validArray= @(x) ~isscalar(x) && isvector(x) && isnumeric(x);
 validAlpha= @(x) isscalar(x) && (x >= 0) && (x <= 1);
 validProps= @(x) isnumeric(x) && ismatrix(x) && all(isNonNeg(x) & all(x <= 1));
 validRGB=   @(x) validProps(x) && size(x, 2) == 3;
 validColV=  @(x) validArray(x) && all(x >= 1); 
-validColor= @(x) validRGB(x) || validColV(x) || iscellstr(x) || isstring(x); 
+validColor= @(x) validRGB(x) || ischar(x);
+validFCol=  @(x) validRGB(x) || validColV(x) || iscellstr(x) || isstring(x); 
 
 
 % parse Name,Val pairs
-tmp_fal= strcmpi(varargin, 'faceAlpha'); 
-tmp_fco= strcmpi(varargin, 'faceColor'); 
-tmp_eco= strcmpi(varargin, 'edgeColor'); 
-tmp_txc= strcmpi(varargin, 'textColor'); 
-tmp_elw= strcmpi(varargin, 'lineWidth');
-tmp_ori= strcmpi(varargin, 'orientation');
-tmp_pre= strcmpi(varargin, 'precision'); 
-tmp_rad= strcmpi(varargin, 'innerRadius'); 
-tmp_sch= strcmpi(varargin, 'scheme'); 
-tmp_ang= strcmpi(varargin, 'startAngle');
-tmp_prs= strcmpi(varargin, 'patchRes'); 
-tmp_ouR= strcmpi(varargin, 'outerRadius'); 
+% tmp_fal= strcmpi(varargin, 'faceAlpha'); 
+% tmp_fco= strcmpi(varargin, 'faceColor'); 
+% tmp_eco= strcmpi(varargin, 'edgeColor'); 
+% tmp_txc= strcmpi(varargin, 'textColor'); 
+% tmp_elw= strcmpi(varargin, 'lineWidth');
+% tmp_ori= strcmpi(varargin, 'orientation');
+% tmp_pre= strcmpi(varargin, 'precision'); 
+% tmp_rad= strcmpi(varargin, 'innerRadius'); 
+% tmp_sch= strcmpi(varargin, 'scheme'); 
+% tmp_ang= strcmpi(varargin, 'startAngle');
+% tmp_prs= strcmpi(varargin, 'patchRes'); 
+% tmp_ouR= strcmpi(varargin, 'outerRadius'); 
 
-% addRequired(p, 'data', validData);
-% addRequired(p, 'dim', validDim);   % going to make this optional for scalars/vectors
-% addParameter(p, 'scheme', def_CS, @(x) any(validatestring(x, expected_sch_types)))
-% addParameter(p, 'faceAlpha', def_FA, validAlpha);
-% addParameter(p, 'faceColor', )
-% addParameter(p, 'edgeColor', def_EC, validColor);
-% addParameter(p, 'textColor', def_TC, validColor);
-% addParameter(p, 'lineWidth', def_LW, validDim);
-% addParameter(p, 'orientation', def_OR, @(x) any(validatestring(x, expected_ori_types)));
-% addParameter(p, 'precision', def_RP, validDim);
-% addParameter(p, 'innerRadius', def_r, validAlpha);
-% addParameter(p, 'outerRadius', def_R, validDim);
-% addParameter(p, 'startAngle', scalarNum);
-% addParameter(p, 'patchRes', validDim);
+addRequired(p, 'data', validData);
+addOptional(p, 'dim', def_d, validDim);   % going to make this optional for scalars/vectors
+addParameter(p, 'scheme', def_CS, @(x) any(validatestring(x, expected_sch_types)))
+addParameter(p, 'faceAlpha', def_FA, validAlpha);
+addParameter(p, 'faceColor', def_FC, validFCol);
+addParameter(p, 'edgeColor', def_EC, validColor);
+addParameter(p, 'textColor', def_TC, validColor);
+addParameter(p, 'lineWidth', def_LW, validDim);
+addParameter(p, 'orientation', def_OR, @(x) any(validatestring(x, expected_ori_types)));
+addParameter(p, 'precision', def_RP, validDim);
+addParameter(p, 'innerRadius', def_r, validAlpha);
+addParameter(p, 'outerRadius', def_R, validDim);
+addParameter(p, 'startAngle', def_SA, scalarNum);
+addParameter(p, 'patchRes', def_PR, validDim);
 
 
 % parse and assign all inputs
-% parse(p, data, varargin{:});
+parse(p, data, varargin{:});
 
 
 
@@ -207,7 +209,7 @@ txt= strcat(string(round(data .* 100, prec)), repmat("%", np, nc));
 % parse color / color scheme args
 if any(tmp_fco)
     col= varargin{find(tmp_fco) + 1};
-    if validColor(col)
+    if validFCol(col)
         fc= col; 
     elseif isempty(col)
         if strcmpi(sc, 'series')
@@ -393,6 +395,11 @@ end
 
 %% Helper functions--------------------------------------------------------
 
+function validateInputs(defaults, fxns)
+
+end
+
+%--------------------------------------------------------------------------
 function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
 
 % r = inner radius
