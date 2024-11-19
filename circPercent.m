@@ -62,20 +62,24 @@ function H = circPercent(data, dim, varargin)
 % Initialize input parser here / and or modularize inside a function
 % input parser defaults
 
-def_R=  10; 
-def_r=  0.6; 
-% def_FC= 
-def_FA= 1;    % face alpha
-def_EC= 'k';  % edge color
-def_TC= 'k';  % text color
-def_LW= 1;    % line width
-def_SA= 0;    % start angle 3 o'clock ('90' would be midnight)
-def_RP= 2;    % rounding precision 
-def_PR= 300;  % resolution of 1 arc of largest patch
+% def_R=  10; 
+% def_r=  0.6; 
+% % def_FC= 
+% def_FA= 1;    % face alpha
+% def_EC= 'k';  % edge color
+% def_TC= 'k';  % text color
+% def_LW= 1;    % line width
+% def_SA= 0;    % start angle 3 o'clock ('90' would be midnight)
+% def_RP= 2;    % rounding precision 
+% def_PR= 300;  % resolution of 1 arc of largest patch
+% def_OR= 'horizontal'; 
+% def_CS= 'category'; 
+% 
+% expected_ori_types= {'horizontal', 'vertical', 'concentric'};
+% expected_sch_types= {'category', 'series'}; 
+% 
+% p= inputParser; 
 
-
-expected_ori_types= {'horizontal', 'vertical', 'concentric'};
-expected_sch_types= {'category', 'series'}; 
 
 % defaults -- center origin (h, k) and radius (r)
 inner_r= 0.6;
@@ -84,9 +88,14 @@ k= 0;
 R= 10;
 r= R * inner_r; 
 
-% anonymous functions validating proportions & optional color matrix input
+% anonymous validation functions
+scalarNum=  @(x) isnumeric(x) && isscalar(x);
+isNonNeg=   @(x) all(x >= 0); 
+validData=  @(x) (isnumeric(x) || islogical(x)) && isreal(x) && isNonNeg(x); 
+validDim=   @(x) scalarNum(x) && isNonNeg(x);
 validArray= @(x) ~isscalar(x) && isvector(x) && isnumeric(x);
-validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
+validAlpha= @(x) isscalar(x) && (x >= 0) && (x <= 1);
+validProps= @(x) isnumeric(x) && ismatrix(x) && all(isNonNeg(x) & all(x <= 1));
 validRGB=   @(x) validProps(x) && size(x, 2) == 3;
 validColV=  @(x) validArray(x) && all(x >= 1); 
 validColor= @(x) validRGB(x) || validColV(x) || iscellstr(x) || isstring(x); 
@@ -105,6 +114,26 @@ tmp_sch= strcmpi(varargin, 'scheme');
 tmp_ang= strcmpi(varargin, 'startAngle');
 tmp_prs= strcmpi(varargin, 'patchRes'); 
 tmp_ouR= strcmpi(varargin, 'outerRadius'); 
+
+% addRequired(p, 'data', validData);
+% addRequired(p, 'dim', validDim);   % going to make this optional for scalars/vectors
+% addParameter(p, 'scheme', def_CS, @(x) any(validatestring(x, expected_sch_types)))
+% addParameter(p, 'faceAlpha', def_FA, validAlpha);
+% addParameter(p, 'faceColor', )
+% addParameter(p, 'edgeColor', def_EC, validColor);
+% addParameter(p, 'textColor', def_TC, validColor);
+% addParameter(p, 'lineWidth', def_LW, validDim);
+% addParameter(p, 'orientation', def_OR, @(x) any(validatestring(x, expected_ori_types)));
+% addParameter(p, 'precision', def_RP, validDim);
+% addParameter(p, 'innerRadius', def_r, validAlpha);
+% addParameter(p, 'outerRadius', def_R, validDim);
+% addParameter(p, 'startAngle', scalarNum);
+% addParameter(p, 'patchRes', validDim);
+
+
+% parse and assign all inputs
+% parse(p, data, varargin{:});
+
 
 
 if any(tmp_ori);  ori= varargin{find(tmp_ori) + 1};
@@ -143,6 +172,10 @@ end
 
 if any(tmp_elw);  lw= varargin{find(tmp_elw) + 1}; 
 else;             lw= 1; 
+end
+
+if any(tmp_fal);  fa= varargin{find(tmp_fal) + 1}; 
+else;             fa= 1; 
 end
 
 
@@ -248,11 +281,11 @@ end
 % compute theta for remaining percentages using comparable increment
 for n= 1:np
     rest= find(~ismember(1:nc, mnz(n)));
-    for p= rest
-        n_pts= length( a0(n, p):inc(n):af(n, p) ); 
-        thetas{n, p}= linspace(a0(n, p), af(n, p), n_pts)';
-        arcrds{n, p}= [repmat(r0(n, p), n_pts, 1), ... 
-                       repmat(rf(n, p), n_pts, 1)];
+    for c= rest
+        n_pts= length( a0(n, c):inc(n):af(n, c) ); 
+        thetas{n, c}= linspace(a0(n, c), af(n, c), n_pts)';
+        arcrds{n, c}= [repmat(r0(n, c), n_pts, 1), ... 
+                       repmat(rf(n, c), n_pts, 1)];
     end
 end
 
@@ -318,12 +351,15 @@ for n= 1:np
         % gobjects for this
         if perfect_circle
             arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
-            plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'EdgeColor', ec, 'LineWidth', lw); hold on
+            plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'FaceAlpha', fa, ...
+                                       'EdgeColor', ec, 'LineWidth', lw); hold on
         else
             arcs(n).series(1, j)= patch('Faces',    1:length(x_vtx{n, j}), ...
                                         'Vertices', [x_vtx{n, j} y_vtx{n, j}], ...
                                         'FaceVertexCData', colors(j, :), ...
-                                        'FaceColor', 'flat', 'EdgeColor', ec, 'LineWidth', lw);   hold on
+                                        'FaceVertexAlphaData', fa, ...
+                                        'FaceAlpha', 'flat', 'FaceColor', 'flat', ...
+                                        'EdgeColor', ec, 'LineWidth', lw);   hold on
         end
 
         lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
@@ -421,6 +457,8 @@ if zpres    % handle case where zeros are present
             thetas{zr(i), zc(i)}= repmat(thetas{zr(i), zc(i)}, 1, 2); 
         end
     end
+elseif isscalar(data) 
+    fill100= true;
 end
 
 end
