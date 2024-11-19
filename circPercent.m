@@ -59,6 +59,8 @@
 
 function H = circPercent(data, dim, varargin)
 
+% Initialize input parser here / and or modularize inside a function
+
 % defaults -- center origin (h, k) and radius (r)
 inner_r= 0.6;
 h= 0;
