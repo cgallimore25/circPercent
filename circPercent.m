@@ -60,6 +60,22 @@
 function H = circPercent(data, dim, varargin)
 
 % Initialize input parser here / and or modularize inside a function
+% input parser defaults
+
+def_R=  10; 
+def_r=  0.6; 
+% def_FC= 
+def_FA= 1;    % face alpha
+def_EC= 'k';  % edge color
+def_TC= 'k';  % text color
+def_LW= 1;    % line width
+def_SA= 0;    % start angle 3 o'clock ('90' would be midnight)
+def_RP= 2;    % rounding precision 
+def_PR= 300;  % resolution of 1 arc of largest patch
+
+
+expected_ori_types= {'horizontal', 'vertical', 'concentric'};
+expected_sch_types= {'category', 'series'}; 
 
 % defaults -- center origin (h, k) and radius (r)
 inner_r= 0.6;
@@ -69,10 +85,15 @@ R= 10;
 r= R * inner_r; 
 
 % anonymous functions validating proportions & optional color matrix input
+validArray= @(x) ~isscalar(x) && isvector(x) && isnumeric(x);
 validProps= @(x) isnumeric(x) && ismatrix(x) && all(all(x >= 0) & all(x <= 1));
-validColor= @(x) (validProps(x) && size(x, 2) == 3) || all(x >= 1) && size(x, 2) == 1; 
+validRGB=   @(x) validProps(x) && size(x, 2) == 3;
+validColV=  @(x) validArray(x) && all(x >= 1); 
+validColor= @(x) validRGB(x) || validColV(x) || iscellstr(x) || isstring(x); 
+
 
 % parse Name,Val pairs
+tmp_fal= strcmpi(varargin, 'faceAlpha'); 
 tmp_fco= strcmpi(varargin, 'faceColor'); 
 tmp_eco= strcmpi(varargin, 'edgeColor'); 
 tmp_txc= strcmpi(varargin, 'textColor'); 
@@ -83,6 +104,7 @@ tmp_rad= strcmpi(varargin, 'innerRadius');
 tmp_sch= strcmpi(varargin, 'scheme'); 
 tmp_ang= strcmpi(varargin, 'startAngle');
 tmp_prs= strcmpi(varargin, 'patchRes'); 
+tmp_ouR= strcmpi(varargin, 'outerRadius'); 
 
 
 if any(tmp_ori);  ori= varargin{find(tmp_ori) + 1};
