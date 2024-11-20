@@ -77,7 +77,7 @@
 %--------------------------------------------------------------------------
 
 
-function H = circPercent(data, varargin)
+function H = donutPlot(data, varargin)
 
 % static defaults -- center origin (h, k)
 h= 0;
