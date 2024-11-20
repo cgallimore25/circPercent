@@ -11,28 +11,52 @@
 % Required arguments:
     % 'data', a vector or matrix of proportions/percentages. 
 
+% Optional positional argument (2nd input after data)
     % 'dim',  the dimension containing each sub-cat/ component of the total
     %         e.g. if data series are distributed along the rows, such that
     %              sub-categories / components are arranged along the 
-    %              columns, your second argument would be '2'
+    %              columns, dim argument would be '2'
     %              if data series are distributed along columns and
-    %              sub-cats along the rows, your second arg would be '1'
+    %              sub-cats along the rows, your dim arg would be '1'
+    %         if input is scalar or vector, this input is not required
+    %         if input is matrix, the function defaults to dim 2 
+    %              (i.e. assumes different groups/series are row-wise),
+    %              which passing this argument overrides. 
 
 % Optional Name,Value pairs:
-    % 'color', an m x 3 vector or matrix specifying RGB triplet(s)
-    % 'orientation', 'horizontal' or 'vertical', for more than 1 data 
-    %                series, determines whether they are plotted from left-
-    %                to-right or top-to-bottom
+    % 'facecolor', an m x 3 vector or matrix specifying RGB triplet(s), or
+    %              a 1 x m array setting face color values (e.g. 1:m), or
+    %              a cell of character arrays or string array of valid
+    %              MATLAB color names / short names (e.g. {'r', 'g', 'b'})
+    % 'edgecolor', same as 'facecolor', but only specify one that will be
+    %              applied to all patch edges (e.g. 'w', or 'k')
+    % 'textcolor', same as 'edgecolor'
+    % 'facealpha', scalar in range [0, 1] specifying opacity
+    % 'linewidth', a positive scalar value in points (1 pt = 1/72 inches)
+    % 'orientation', 'horizontal', 'vertical', or 'concentric' 
+    %                this argument only exerts effects for more than 1 data 
+    %                series, determining whether they are plotted from 
+    %                left-to-right, top-to-bottom, or 'inside-to-outside'
     % 'precision', specifies the rounding precision for text labels (i.e. 
     %              the max number of decimal places)
-    % 'innerRadius', specifies the radius of the circle, indirectly impacting
-    %           the width of the line arcs
+    % 'innerRadius', scalar in range [0, 1] specifying the inner radius of
+    %                patches as a proportion of the outer radius.
+    %                a value of '0' creates a pie chart
+    %                a value of '1' creates a ring with no visible slices
+    % 'outerRadius', a non-negative scalar specifying outer patch radius
+    % 'startAngle',  scalar value in degrees specifying start angle where
+    %                patches emanate. 0 degrees corresponds to 3 o'oclock.
+    %                positive values rotate counterclockwise, negative
+    %                values clockwise. 
     % 'scheme', 'category' or 'series', determines the coloring scheme. In
     %           one case, your 'color' matrix may represent the color you 
     %           want each common 'category' to be for all series (default).
     %           In another case, you may be specifying the base color you
     %           want your percentage components to be for each 'series'. In
     %           this option, subsequent percentages will be plotted darker
+    % 'patchRes',  a positive scalar value specifying the number of points
+    %              used to represent the largest arc. Subsequent (smaller) 
+    %              arcs are represented in proportion to this
 
 
 % Outputs:
@@ -43,10 +67,6 @@
 % see 'circPercent_demo.mlx' for usage tips and tricks
 
 % Additional notes:
-% The origin and radius are arbitrary, as the width of line arcs will be 
-% scaled as a function of radius and number of plot series, with axes 
-% removed at the end anyways. I chose (0, 0) and 3, respectively.
-
 % I used the helper function 'getAlignmentFromAngle' from MATLAB's 'pie.m'
 % to position text labels, for which I take no credit and all rights go to
 % Clay M. Thompson 3-3-94 and The MathWorks, Inc., Copyright 1984-2022 
