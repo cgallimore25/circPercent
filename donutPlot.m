@@ -64,7 +64,7 @@
 % 'colors'
 
 % Examples: 
-% see 'circPercent_demo.mlx' for usage tips and tricks
+% see 'donutPlot_demo.mlx' for usage tips and tricks
 
 % Additional notes:
 % I used the helper function 'getAlignmentFromAngle' from MATLAB's 'pie.m'
