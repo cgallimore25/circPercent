@@ -67,12 +67,11 @@
 % see 'donutPlot_demo.mlx' for usage tips and tricks
 
 % Additional notes:
-% I used the helper function 'getAlignmentFromAngle' from MATLAB's 'pie.m'
-% to position text labels, for which I take no credit and all rights go to
+% Used 'getAlignmentFromAngle' from MATLAB's 'pie.m', all rights go to
 % Clay M. Thompson 3-3-94 and The MathWorks, Inc., Copyright 1984-2022 
 
-% This function also uses 'distinguishable_colors.m' by Timothy E. Holy, 
-% for which all rights are reserved to them (Copyright (c) 2010-2011, 
+% Also used 'distinguishable_colors.m' by Timothy E. Holy, for which 
+% all rights reserved to them (Copyright (c) 2010-2011, 
 % https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)
 %--------------------------------------------------------------------------
 
@@ -223,10 +222,16 @@ if ~perfect_circle
     end
 end
 
-% pre-allocate text coordinates & determine position
-[xc, yc]= deal(zeros(np, nc));
+% define text coordinates 
 centerTheta= cellfun(@median, thetas); 
 [xt, yt]= pol2cart(centerTheta, txt_r); 
+
+% determine text alignment based on orientation
+if strcmpi(ori, 'concentric')
+    [halign, valign]= deal( repmat({'center'}, np, nc), repmat({'middle'}, np, nc) ); 
+else
+    [halign, valign]= cellfun(@getAlignmentFromAngle, num2cell(centerTheta), 'UniformOutput', false); 
+end
 
 
 % plot arcs & percentages
@@ -245,23 +250,11 @@ for n= 1:np
             end
         end
 
-        xc(n, j)= xt(n, j) + h(n);
-        yc(n, j)= yt(n, j) + k(n); 
-
-        % determine text alignment based on orientation
-        if strcmpi(ori, 'concentric')
-            halign= 'center'; valign= 'middle'; 
-        else
-            [halign, valign]= getAlignmentFromAngle(centerTheta(n, j)); % from pie.m
-        end
-
-        % a working polyshape function -- NOTE: cannot pre-allocate
-        % gobjects for this
-        if perfect_circle
+        if perfect_circle   % use polyshape
             arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
             plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'FaceAlpha', fa, ...
                                        'EdgeColor', ec, 'LineWidth', lw); hold on
-        else
+        else                % use patch
             arcs(n).series(1, j)= patch('Faces',    1:length(x_vtx{n, j}), ...
                                         'Vertices', [x_vtx{n, j} y_vtx{n, j}], ...
                                         'FaceVertexCData', colors(j, :), ...
@@ -270,10 +263,10 @@ for n= 1:np
                                         'EdgeColor', ec, 'LineWidth', lw);   hold on
         end
 
-        lbls(n).series(1, j)= text(xc(n, j), yc(n, j), txt(n, j), ...
+        lbls(n).series(1, j)= text(xt(n, j) + h(n), yt(n, j) + k(n), txt(n, j), ...
                                    'color', tc, ...
-                                   'HorizontalAlignment', halign, ...
-                                   'VerticalAlignment', valign);
+                                   'HorizontalAlignment', halign{n, j}, ...
+                                   'VerticalAlignment', valign{n, j});
     end
 end
 
@@ -303,6 +296,8 @@ end
 
 function [p, f]= validateInputs(data, defaults, varargs)
 
+% returns structure of parsed inputs and some validation functions
+
 % define anonymous validation functions in a structure
 f.scalarNum=  @(x) isnumeric(x) && isscalar(x);
 f.isNonNeg=   @(x) all(all(x >= 0)); 
@@ -320,7 +315,7 @@ f.colorCat=   @(x, y, z) strcmpi(x, 'category') && size(y, 1) == z;
 p= inputParser; 
 
 addRequired(p, 'data', f.validData);
-addOptional(p, 'dim', defaults.d, f.validDim);   % going to make this optional for scalars/vectors
+addOptional(p, 'dim', defaults.d, f.validDim);   
 addParameter(p, 'scheme', defaults.CS, @(x) any(validatestring(x, defaults.sch_types)))
 addParameter(p, 'faceAlpha', defaults.FA, f.validAlpha);
 addParameter(p, 'faceColor', defaults.FC, f.validFCol);
