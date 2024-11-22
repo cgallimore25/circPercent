@@ -43,6 +43,7 @@
     %                patches as a proportion of the outer radius.
     %                a value of '0' creates a pie chart
     %                a value of '1' creates a ring with no visible slices
+    %                default = 0.65
     % 'outerRadius', a non-negative scalar specifying outer patch radius
     % 'startAngle',  scalar value in degrees specifying start angle where
     %                patches emanate. 0 degrees corresponds to 3 o'oclock.
@@ -84,7 +85,7 @@ k= 0;
 
 % input parser defaults
 def.R=  10;             % outer radius
-def.r=  0.6;            % inner radius as a proportion of outer radius
+def.r=  0.65;           % inner radius as a proportion of outer radius
 def.d=  2;              % dim to operate on
 def.FC= [];             % face color; resolved in local function
 def.FA= 1;              % face alpha
@@ -348,7 +349,9 @@ if isempty(color)
         facecolor= facecolor(n_cats+1:end, :);
     end
 else
-    if fxns.validColV(color) || isstring(color)
+    if fxns.validRGB(color)
+        facecolor= color; 
+    elseif fxns.validColV(color) || isstring(color)
         facecolor= color(:);
     elseif iscellstr(color)
         facecolor= vertcat(color{:});
