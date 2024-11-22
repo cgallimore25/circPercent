@@ -137,8 +137,7 @@ np= size(data, np_dim);   % num percents to plot
 nc= size(data, nc_dim);   % num components to total
 
 % only used if 'series' scheme is requested
-dark= linspace(1, 0, nc+1);  % darkness scaling
-dark= dark(1:nc)'; 
+dark= linspace(1, 0.1, nc)';  % darkness scaling
 
 % normalize groups that don't sum to 1
 if any(sum(data, dim) > 1+sqrt(eps))
