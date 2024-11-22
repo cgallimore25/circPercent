@@ -96,7 +96,7 @@ def.RP= 2;              % rounding precision
 def.PR= 300;            % resolution of 1 arc of largest patch
 def.OR= 'horizontal';   % orientation (has no effect if vector input)
 def.CS= 'category';     % color scheme
-def.ori_types= {'horizontal', 'vertical', 'concentric'};
+def.ori_types= {'horizontal', 'vertical', 'concentric', 'h', 'v', 'c'};
 def.sch_types= {'category', 'series'}; 
 
 % pass defaults to parser obj for validation
