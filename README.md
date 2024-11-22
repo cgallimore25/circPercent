@@ -4,3 +4,10 @@
 
 # circPercent
 Use circular arcs to graphically illustrate proportions in MATLAB.
+
+Catalog of changes in version 2.0.0 (formerly 'circPercent'):
+- Converted plotted elements from line to patch objects for both fill and edge customization
+- Support for concentric plotting style, embedding data series inside-out
+- New name, value pairs for user-defined start angle, donut radius, transparency, linewidth, and text color
+- Transitioned to an input parser object for flexible argument handling
+- Modularization of coordinate calculations and special cases
