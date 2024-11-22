@@ -227,10 +227,11 @@ centerTheta= cellfun(@median, thetas);
 [xt, yt]= pol2cart(centerTheta, txt_r); 
 
 % determine text alignment based on orientation
-if strcmpi(ori, 'concentric')
-    [halign, valign]= deal( repmat({'center'}, np, nc), repmat({'middle'}, np, nc) ); 
-else
-    [halign, valign]= cellfun(@getAlignmentFromAngle, num2cell(centerTheta), 'UniformOutput', false); 
+switch ori
+    case {'concentric', 'c'}
+        [halign, valign]= deal( repmat({'center'}, np, nc), repmat({'middle'}, np, nc) ); 
+    otherwise    
+        [halign, valign]= cellfun(@getAlignmentFromAngle, num2cell(centerTheta), 'UniformOutput', false); 
 end
 
 
@@ -380,34 +381,34 @@ function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, 
 % r = inner radius
 % R = outer radius
 
+r= repmat(r, np, 1); 
+R= repmat(R, np, 1); 
+
 switch ori
-    case 'concentric'    % fix plot at origin & increment radius
+    case {'concentric', 'c'}    % fix plot at origin & increment radius
         h= zeros(1, np); 
         k= zeros(1, np); 
-        r= (2:np+1)';    % override any innerRadius argument
+        r= (2:np+1)';           % override any innerRadius argument
         R= r + 0.975; 
-    otherwise            % scale text pos differently for multiple series
-        r= repmat(r, np, 1); 
-        R= repmat(R, np, 1); 
-
-        % adjust (h, k) for the desired orientation
-        if strcmpi(ori, 'horizontal')
-            h= h:(3*R+1):(3*R+1)*np-1;       % step right for horz series
-            k= zeros(1, np); 
-        else
-            h= zeros(1, np); 
-            k= k:-(3*R+1):-((3*R+1)*np-1);   % step down for vert series
-        end
+    case {'horizontal', 'h'}    % step right for horz series (h)
+        h= h:(3*R+1):(3*R+1)*np-1;       
+        k= zeros(1, np); 
+    case {'vertical', 'v'}      % step down for vert series (k)
+        h= zeros(1, np); 
+        k= k:-(3*R+1):-((3*R+1)*np-1);   
+    otherwise
 end
 
 % pre-set ax limits
 x1= h-R-np;   x2= h+R+np;    y1= k-R-np;    y2= k+R+np;
-if strcmpi(ori, 'concentric')
-    text_radius= (R + r) / 2;  % average inner & outer radii
-    x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
-else
-    text_radius= R * 1.05;     % position outside the rings
-    x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
+
+switch ori
+    case {'concentric', 'c'}
+        text_radius= (R + r) / 2;  % average inner & outer radii
+        x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
+    otherwise
+        text_radius= R * 1.05;     % position outside the rings
+        x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
 end
 
 ax_limits= [x_lo x_hi y_lo y_hi]; 
