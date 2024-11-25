@@ -234,6 +234,10 @@ switch ori
         [halign, valign]= cellfun(@getAlignmentFromAngle, num2cell(centerTheta), 'UniformOutput', false); 
 end
 
+% create facealpha matrix
+if isscalar(fa)
+    fa= repmat(fa, size(data)); 
+end
 
 % plot arcs & percentages
 for n= 1:np
@@ -253,13 +257,13 @@ for n= 1:np
 
         if perfect_circle   % use polyshape
             arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
-            plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'FaceAlpha', fa, ...
+            plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'FaceAlpha', fa(n, j), ...
                                        'EdgeColor', ec, 'LineWidth', lw); hold on
         else                % use patch
             arcs(n).series(1, j)= patch('Faces',    1:length(x_vtx{n, j}), ...
                                         'Vertices', [x_vtx{n, j} y_vtx{n, j}], ...
                                         'FaceVertexCData', colors(j, :), ...
-                                        'FaceVertexAlphaData', fa, ...
+                                        'FaceVertexAlphaData', fa(n, j), ...
                                         'FaceAlpha', 'flat', 'FaceColor', 'flat', ...
                                         'EdgeColor', ec, 'LineWidth', lw);   hold on
         end
@@ -305,7 +309,7 @@ f.isNonNeg=   @(x) all(all(x >= 0));
 f.validData=  @(x) all((isnumeric(x) | islogical(x))) && isreal(x) && f.isNonNeg(x); 
 f.validDim=   @(x) f.scalarNum(x) && f.isNonNeg(x);
 f.validArray= @(x) ~isscalar(x) && isvector(x) && isnumeric(x);
-f.validAlpha= @(x) isscalar(x) && (x >= 0) && (x <= 1);
+f.validAlpha= @(x) (isscalar(x) && (x >= 0) && (x <= 1)) || (ismatrix(x) && ~isscalar(x));
 f.validProps= @(x) isnumeric(x) && ismatrix(x) && all(f.isNonNeg(x) & all(x <= 1));
 f.validRGB=   @(x) f.validProps(x) && size(x, 2) == 3;
 f.validColV=  @(x) f.validArray(x) && all(x >= 1); 
