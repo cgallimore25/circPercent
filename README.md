@@ -87,3 +87,132 @@ total= sum(data, 2);  % show groups are rows and components are cols
 figure;
 donutPlot(data);
 ```
+<p align="center">
+  <img src="screenshot/example_01.PNG">
+</p>
+
+Notice that the function implicitly assumes that groups are distributed along the rows. You can achieve the equivalent output in this example using:
+```matlab
+% Create plot
+figure;
+donutPlot(data, 2);
+```
+or '1' if your input data is transposed (column = group, rows = components).
+
+### Example 2: Orientation customization
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518]; 
+
+figure;
+donutPlot(data, 2, 'orientation', 'vertical');
+```
+<p align="center">
+  <img src="screenshot/example_02a.PNG">
+</p>
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518]; 
+
+figure;
+donutPlot(data, 2, 'orientation', 'concentric');
+```
+<p align="center">
+  <img src="screenshot/example_02b.PNG">
+</p>
+
+All of these options support a shorthand specification as well by using 'h', 'v', or 'c' for the corresponding above inputs. 
+
+### Example 3: Altering the inner radius
+
+The 'innerRadius' Name,Value pair (case insensitive; as are all following) specifies the inner radius of the donut as a proportion of the outer radius. This means you can plot a simple pie chart with input '0', and invisible rings with input '1'. I do this in a loop because the function currently only supports a scalar, common radius applied to all groups in the case of matrix input. Plot one subject's data for simplicity.
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518];
+ 
+n_subj= size(data, 1);  % make variable for n groups / subjects
+
+r= 0.9:-0.3:0; 
+
+figure;  
+for s= 1:n_subj
+    subplot(1, n_subj, s)
+    donutPlot(data(4, :), 'innerRadius', r(s));
+end
+```
+<p align="center">
+  <img src="screenshot/example_03.PNG">
+</p>
+
+### Example 4: Start angle & text precision customization
+
+The 'startAngle' Name,Value pair allows specification of the position where all patches for the first component emanate, corresponding to the unit circle (default '0' is 3 o'clock; '90' is midnight). Positive angles step counter-clockwise, whereas negative angles will step clockwise. We'll add on the 'precision' pair here too to clean up the text a bit. 
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518];
+
+figure;  
+subplot(1, 2, 1)
+donutPlot(data, 2, 'orientation', 'c', 'precision', 1);
+subplot(1, 2, 2)
+donutPlot(data, 2, 'startangle', 90, 'orientation', 'c', 'precision', 0);
+```
+<p align="center">
+  <img src="screenshot/example_04.PNG">
+</p>
+
+### Example 5: Line and color specification
+
+Conforms to the same specs used by default in MATLAB for 'edgeColor', 'lineWidth', 'textColor'. I introduce these separately from 'faceColor' (below) because these 3 apply input to all patch or text elements, whereas 'faceColor' can receive a 1-to-1 mapping for all patch element faces (i.e. vector or matrix input).
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518];
+
+figure;  
+subplot(1, 3, 1)
+donutPlot(data, 2, 'orientation', 'c', 'precision', 0);
+subplot(1, 3, 2)
+donutPlot(data, 2, 'orientation', 'c', 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+subplot(1, 3, 3)
+donutPlot(data, 2, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'textcolor', 'r', 'startangle', 90, 'precision', 0);
+```
+<p align="center">
+  <img src="screenshot/example_05.PNG">
+</p>
+
+### Example 6: Facecolor customization
+
+This function utilizes 'distinguishable_colors.m' ([File exchange](https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)) to create colors for you, though you are free to pass your own custom color arguments in using 'facecolor' followed by an m x 3 array input, where m == size(data, 1)
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518];
+
+simple_colrs= [1 0 0;
+              0 0 1;
+              0 1 1;
+              1 0 1];
+
+figure;
+donutPlot(data, 2, 'facecolor', simple_colrs, 'precision', 0, 'edgecolor', 'w', 'linewidth', 2);
+```
+<p align="center">
+  <img src="screenshot/example_06.PNG">
+</p>
