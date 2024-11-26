@@ -3,9 +3,9 @@
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=cgallimore25/circPercent&file=README.md)
 
 # donutPlot
-Use circular arcs to graphically illustrate proportions and percentages in MATLAB.
+Use circular arcs to graphically illustrate proportions and percentages in MATLAB. For a fully comprehensive demo of usage and special case handling within the function, I recommend checking out the demo file `donutPlot_demo.mlx`.
 
-Catalog of changes in version 2.0.0 (formerly 'circPercent'):
+Catalog of changes in version `2.0.0` (formerly 'circPercent'):
 - Converted plotted elements from line to patch objects for both fill and edge customization
 - Support for concentric plotting style, embedding data series inside-out
 - New name, value pairs for user-defined start angle, donut radius, transparency, linewidth, and text color
@@ -14,11 +14,11 @@ Catalog of changes in version 2.0.0 (formerly 'circPercent'):
 
 
 ## Syntax:
-**donutPlot(data)**
+`donutPlot(data)`
 
-**donutPlot(data, Name, Value, ...)**
+`donutPlot(data, Name, Value, ...)`
 
-**h = donutPlot(_)**
+`h = donutPlot(_)`
 
 ## Input Arguments:
 *(Required)*
@@ -260,11 +260,13 @@ colormap(cool)
   <img src="examples/example_08b.png">
 </p>
 
-In the demo .mlx file, I detail some additional examples of how you could use 4 different colormaps all in the same figure (1 for each subplot). 
+In the demo `.mlx` file, I detail some additional examples of how you could use 4 different colormaps all in the same figure (1 for each subplot). 
 
 ### Example 9: Recommended usage with legend()
 
-A basic, empty `'legend()'` call will produce an unwieldy display of all patches which redundantly repeat the same colors used across all series.  We can truncate this by editing our legend call to ignore remaining entries (by passing an empty string) and only plot those common to multiple data series. Anyone who's used a legend in MATLAB with `'pie.m'` knows that its default location will likely obscure the data.  We can use the `'Position'` property to achieve a cleaner look.
+A basic, empty `'legend()'` call will produce an unwieldy display of all patches which redundantly repeat the same colors used across all series.  We can truncate this by editing our legend call to ignore remaining entries (by passing an empty string) and only plot those common to multiple data series. Anyone who's used a legend in MATLAB with `'pie.m'` knows that its default location will likely obscure the data.  We can use the `'Position'` property to achieve a cleaner look. 
+
+**NOTE:** This custom colormap is included as a local function in the `.mlx` demo file.
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
