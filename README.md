@@ -34,18 +34,18 @@ Catalog of changes in version `2.0.0` (formerly 'circPercent'):
 ## Name-Value Pair Arguments:
 *(Optional; case insensitive)*
 
--**'facecolor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. 1:m).
+-**'faceColor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. 1:m).
                      [m x 3 vector | matrix]
 
--**'edgecolor'**   - same as 'facecolor', but only specify one that will be applied to all patch edges (e.g. 'w', or 'k').
+-**'edgeColor'**   - same as 'facecolor', but only specify one that will be applied to all patch edges (e.g. 'w', or 'k').
                      [RGB triplet | char]
 
--**'textcolor'**   - same as 'edgecolor'
+-**'textColor'**   - same as 'edgecolor'
                      [RGB triplet | char]
 
--**'facealpha'**   - scalar in range [0, 1] specifying opacity.
+-**'faceAlpha'**   - scalar in range [0, 1] specifying opacity.
 
--**'linewidth'**   - a positive scalar value in points (1 pt = 1/72 inches).
+-**'lineWidth'**   - a positive scalar value in points (1 pt = 1/72 inches).
 
 -**'orientation'** - 'horizontal', 'vertical', or 'concentric'; this argument only exerts effects for more than 1 data series, determining whether they are plotted from 
                      left-to-right, top-to-bottom, or 'inside-to-outside'. Can also use shorthand forms 'h', 'v', 'c'.
