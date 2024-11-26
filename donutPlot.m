@@ -25,9 +25,7 @@
 
 % Optional Name,Value pairs:
     % 'facecolor', an m x 3 vector or matrix specifying RGB triplet(s), or
-    %              a 1 x m array setting face color values (e.g. 1:m), or
-    %              a cell of character arrays or string array of valid
-    %              MATLAB color names / short names (e.g. {'r', 'g', 'b'})
+    %              a 1 x m array setting face color values (e.g. 1:m)
     % 'edgecolor', same as 'facecolor', but only specify one that will be
     %              applied to all patch edges (e.g. 'w', or 'k')
     % 'textcolor', same as 'edgecolor'
