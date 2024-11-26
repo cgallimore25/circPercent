@@ -28,14 +28,14 @@ Catalog of changes in version 2.0.0 (formerly 'circPercent'):
 
 ## Output Arguments:
 *(Optional)*
-- **h**                - Figure handle of spider plot.
+- **h**                - Figure handle of donut plot (arc patches, text, colors).
                          [structure]
 
 ## Name-Value Pair Arguments:
-*(Optional)*
+*(Optional; case insensitive)*
 
--**'facecolor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array setting face color values (e.g. 1:m), or a cell of character arrays or string array of valid MATLAB color names / short names (e.g. {'r', 'g', 'b'}).
-                     [m x 3 vector | matrix | cellstr | string]
+-**'facecolor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. 1:m).
+                     [m x 3 vector | matrix]
 
 -**'edgecolor'**   - same as 'facecolor', but only specify one that will be applied to all patch edges (e.g. 'w', or 'k').
                      [RGB triplet | char]
@@ -131,7 +131,7 @@ All of these options support a shorthand specification as well by using 'h', 'v'
 
 ### Example 3: Altering the inner radius
 
-The 'innerRadius' Name,Value pair (case insensitive; as are all following) specifies the inner radius of the donut as a proportion of the outer radius. This means you can plot a simple pie chart with input '0', and invisible rings with input '1'. I do this in a loop because the function currently only supports a scalar, common radius applied to all groups in the case of matrix input. Plot one subject's data for simplicity.
+The `'innerRadius'` Name,Value pair specifies the inner radius of the donut as a proportion of the outer radius. This means you can plot a simple pie chart with input '0', and invisible rings with input '1'. I do this in a loop because the function currently only supports a scalar, common radius applied to all groups in the case of matrix input. Plot one subject's data for simplicity.
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -155,7 +155,7 @@ end
 
 ### Example 4: Start angle & text precision customization
 
-The 'startAngle' Name,Value pair allows specification of the position where all patches for the first component emanate, corresponding to the unit circle (default '0' is 3 o'clock; '90' is midnight). Positive angles step counter-clockwise, whereas negative angles will step clockwise. We'll add on the 'precision' pair here too to clean up the text a bit. 
+The `'startAngle'` Name,Value pair allows specification of the position where all patches for the first component emanate, corresponding to the unit circle (default '0' is 3 o'clock; '90' is midnight). Positive angles step counter-clockwise, whereas negative angles will step clockwise. We'll add on the 'precision' pair here too to clean up the text a bit. 
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -175,7 +175,7 @@ donutPlot(data, 2, 'startangle', 90, 'orientation', 'c', 'precision', 0);
 
 ### Example 5: Line and color specification
 
-Conforms to the same specs used by default in MATLAB for 'edgeColor', 'lineWidth', 'textColor'. I introduce these separately from 'faceColor' (below) because these 3 apply input to all patch or text elements, whereas 'faceColor' can receive a 1-to-1 mapping for all patch element faces (i.e. vector or matrix input).
+Conforms to the same specs used by default in MATLAB for `'edgeColor'`, `'lineWidth'`, `'textColor'`. I introduce these separately from `'faceColor'` (below) because these 3 apply input to all patch or text elements, whereas `'faceColor'` can receive a 1-to-1 mapping for all patch element faces (i.e. vector or matrix input).
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -197,7 +197,7 @@ donutPlot(data, 2, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'te
 
 ### Example 6: Facecolor customization
 
-This function utilizes 'distinguishable_colors.m' ([File exchange](https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)) to create colors for you, though you are free to pass your own custom color arguments in using 'facecolor' followed by an m x 3 array input, where m == size(data, 1)
+This function utilizes `distinguishable_colors.m` ([File exchange](https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)) to create colors for you, though you are free to pass your own custom color arguments in using 'facecolor' followed by an m x 3 array input, where m == size(data, 1)
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -215,4 +215,81 @@ donutPlot(data, 2, 'facecolor', simple_colrs, 'precision', 0, 'edgecolor', 'w', 
 ```
 <p align="center">
   <img src="examples/example_06.png">
+</p>
+
+### Example 7: Color scheme
+
+By default, the colors are assigned to the categories (i.e. the various components making up the totals for each group). However, you can alter the color scheme to assign the different colors to each data series, which darkens the custom input (or default) colors for the subsequent components.
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518];
+
+figure;
+donutPlot(data, 2, 'scheme', 'series', 'precision', 1, 'edgecolor', 'w', 'linewidth', 2);
+```
+<p align="center">
+  <img src="examples/example_07.png">
+</p>
+
+### Example 8: Usage with colormap() call
+
+Version `2.0.0` uses `'FaceVertexCData'` to alter patch color, meaning it can also directly be assigned a value for usage with default colormaps.
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518];
+
+figure;
+donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+```
+<p align="center">
+  <img src="examples/example_08a.png">
+</p>
+
+```matlab
+figure;
+donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+colormap(cool)
+```
+<p align="center">
+  <img src="examples/example_08b.png">
+</p>
+
+In the demo .mlx file, I detail some additional examples of how you could use 4 different colormaps all in the same figure (1 for each subplot). 
+
+### Example 9: Recommended usage with legend()
+
+A basic, empty `'legend()'` call will produce an unwieldy display of all patches which redundantly repeat the same colors used across all series.  We can truncate this by editing our legend call to ignore remaining entries (by passing an empty string) and only plot those common to multiple data series. Anyone who's used a legend in MATLAB with `'pie.m'` knows that its default location will likely obscure the data.  We can use the `'Position'` property to achieve a cleaner look.
+
+```matlab
+data= [0.2445	0.2554	0.3237	0.1762;
+       0.1924	0.2255	0.1672	0.4147;
+       0.1513	0.2769	0.2749	0.2967;
+       0.1402	0.3639	0.2439	0.2518];
+
+lgd_pad= strings(1, numel(data) - size(data, 2) );   % array of empty strings to pad
+lgd_txt= ["Surface", "Below Surface", "Deep", "Very Deep", lgd_pad];
+
+figure;
+donutPlot(data, 2, 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+colormap(owt)
+legend(lgd_txt, "NumColumns", 2, "Position", [0.5 0.1 0.1 0.2])
+```
+<p align="center">
+  <img src="examples/example_09a.png">
+</p>
+
+```matlab
+figure;
+donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+colormap(owt)
+legend(lgd_txt, "Position", [0.1 0.75 0.1 0.2])
+```
+<p align="center">
+  <img src="examples/example_09b.png">
 </p>
