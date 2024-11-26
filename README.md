@@ -111,7 +111,7 @@ figure;
 donutPlot(data, 2, 'orientation', 'vertical');
 ```
 <p align="center">
-  <img src="examples/example_02a.PNG">
+  <img src="examples/example_02a.png">
 </p>
 
 ```matlab
