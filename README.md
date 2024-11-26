@@ -155,7 +155,9 @@ end
 
 ### Example 4: Start angle & text precision customization
 
-The `'startAngle'` Name,Value pair allows specification of the position where all patches for the first component emanate, corresponding to the unit circle (default '0' is 3 o'clock; '90' is midnight). Positive angles step counter-clockwise, whereas negative angles will step clockwise. We'll add on the 'precision' pair here too to clean up the text a bit. 
+The `'startAngle'` Name,Value pair allows specification of the position where all patches for the first component emanate, corresponding to the unit circle (default '0' is 3 o'clock; '90' is midnight). Positive angles step counter-clockwise, whereas negative angles will step clockwise. 
+
+We'll add on the `'precision'` pair here too to clean up the text a bit. 
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -197,7 +199,7 @@ donutPlot(data, 2, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'te
 
 ### Example 6: Facecolor customization
 
-This function utilizes `distinguishable_colors.m` ([File exchange](https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)) to create colors for you, though you are free to pass your own custom color arguments in using 'facecolor' followed by an m x 3 array input, where m == size(data, 1)
+This function utilizes `distinguishable_colors.m` ([File exchange](https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)) to create colors for you, though you are free to pass your own custom color arguments in using 'facecolor' followed by an m x 3 array input, where m == size(data, 1).
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
