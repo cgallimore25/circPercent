@@ -88,7 +88,7 @@ figure;
 donutPlot(data);
 ```
 <p align="center">
-  <img src="screenshot/example_01.PNG">
+  <img src="examples/example_01.PNG">
 </p>
 
 Notice that the function implicitly assumes that groups are distributed along the rows. You can achieve the equivalent output in this example using:
@@ -111,7 +111,7 @@ figure;
 donutPlot(data, 2, 'orientation', 'vertical');
 ```
 <p align="center">
-  <img src="screenshot/example_02a.PNG">
+  <img src="examples/example_02a.PNG">
 </p>
 
 ```matlab
@@ -124,7 +124,7 @@ figure;
 donutPlot(data, 2, 'orientation', 'concentric');
 ```
 <p align="center">
-  <img src="screenshot/example_02b.PNG">
+  <img src="examples/example_02b.PNG">
 </p>
 
 All of these options support a shorthand specification as well by using 'h', 'v', or 'c' for the corresponding above inputs. 
@@ -150,7 +150,7 @@ for s= 1:n_subj
 end
 ```
 <p align="center">
-  <img src="screenshot/example_03.PNG">
+  <img src="examples/example_03.PNG">
 </p>
 
 ### Example 4: Start angle & text precision customization
@@ -170,7 +170,7 @@ subplot(1, 2, 2)
 donutPlot(data, 2, 'startangle', 90, 'orientation', 'c', 'precision', 0);
 ```
 <p align="center">
-  <img src="screenshot/example_04.PNG">
+  <img src="examples/example_04.PNG">
 </p>
 
 ### Example 5: Line and color specification
@@ -192,7 +192,7 @@ subplot(1, 3, 3)
 donutPlot(data, 2, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'textcolor', 'r', 'startangle', 90, 'precision', 0);
 ```
 <p align="center">
-  <img src="screenshot/example_05.PNG">
+  <img src="examples/example_05.PNG">
 </p>
 
 ### Example 6: Facecolor customization
@@ -214,5 +214,5 @@ figure;
 donutPlot(data, 2, 'facecolor', simple_colrs, 'precision', 0, 'edgecolor', 'w', 'linewidth', 2);
 ```
 <p align="center">
-  <img src="screenshot/example_06.PNG">
+  <img src="examples/example_06.PNG">
 </p>
