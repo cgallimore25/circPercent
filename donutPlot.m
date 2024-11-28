@@ -1,6 +1,7 @@
 %SUMMARY
-% Author: Connor Gallimore
-% 12/26/2023
+% Author:   Connor Gallimore
+% Initial:  12/26/2023
+% Modified: 11/28/2024
 
 % This function creates arcs of a circle that represent percentages as the
 % proportion of total circumference. I first saw this data visualization
@@ -24,19 +25,19 @@
     %              which passing this argument overrides. 
 
 % Optional Name,Value pairs:
-    % 'facecolor', an m x 3 vector or matrix specifying RGB triplet(s), or
-    %              a 1 x m array setting face color values (e.g. 1:m)
-    % 'edgecolor', same as 'facecolor', but only specify one that will be
-    %              applied to all patch edges (e.g. 'w', or 'k')
-    % 'textcolor', same as 'edgecolor'
-    % 'facealpha', scalar in range [0, 1] specifying opacity
-    % 'linewidth', a positive scalar value in points (1 pt = 1/72 inches)
+    % 'facecolor',   an m x 3 vector or matrix specifying RGB triplet(s), 
+    %                or a 1 x m array setting face color values (e.g. 1:m)
+    % 'edgecolor',   same as 'facecolor', but only specify one that will be
+    %                applied to all patch edges (e.g. 'w', or 'k')
+    % 'textcolor',   same as 'edgecolor'
+    % 'facealpha',   scalar in range [0, 1] specifying opacity
+    % 'linewidth',   a positive scalar value in points (1 pt = 1/72 inches)
     % 'orientation', 'horizontal', 'vertical', or 'concentric' 
     %                this argument only exerts effects for more than 1 data 
     %                series, determining whether they are plotted from 
     %                left-to-right, top-to-bottom, or 'inside-to-outside'
-    % 'precision', specifies the rounding precision for text labels (i.e. 
-    %              the max number of decimal places)
+    % 'precision',   specifies the rounding precision for text labels (i.e. 
+    %                the max number of decimal places)
     % 'innerRadius', scalar in range [0, 1] specifying the inner radius of
     %                patches as a proportion of the outer radius.
     %                a value of '0' creates a pie chart
@@ -49,19 +50,17 @@
     %                patches emanate. 0 degrees corresponds to 3 o'oclock.
     %                positive values rotate counterclockwise, negative
     %                values clockwise. 
-    % 'scheme', 'category' or 'series', determines the coloring scheme. In
-    %           one case, your 'color' matrix may represent the color you 
-    %           want each common 'category' to be for all series (default).
-    %           In another case, you may be specifying the base color you
-    %           want your percentage components to be for each 'series'. In
-    %           this option, subsequent percentages will be plotted darker
-    % 'patchRes',  a positive scalar value specifying the number of points
-    %              used to represent the largest arc. Subsequent (smaller) 
-    %              arcs are represented in proportion to this
+    % 'scheme',      'category' or 'series', determines coloring scheme. In
+    %                one case, your 'facecolor' matrix may represent colors 
+    %                of common 'categories' for all series (default).
+    %                In another case, you may be specifying the base color 
+    %                you want pctage components to be for each 'series'. In
+    %                this option, subsequent percentages are plotted darker
+    % 'patchRes',    a positive scalar value specifying the n points used 
+    %                to represent the largest arc. Subsequent (smaller) 
+    %                arcs are represented in proportion to this
+    % 'showLabels',  accepts logical (T/F) or numeric (0/1), default = true
 
-
-% NOTE TO SELF: may need to disentangle alpha validation fxn from other
-% inputs (like ring sep)
 
 % Outputs:
 % a structure of handles 'H' to the line 'arcs', text labels ('lbls'), and
@@ -69,6 +68,11 @@
 
 % Examples: 
 % see 'donutPlot_demo.mlx' for usage tips and tricks
+
+% Versions:
+% 1.0.0 Initial release (01/04/2024)
+% 2.0.0 patch-object    (11/26/2024)
+% 2.0.1 ring-sep        (11/28/2024)
 
 % Additional notes:
 % Used 'getAlignmentFromAngle' from MATLAB's 'pie.m', all rights go to
@@ -81,7 +85,6 @@
 
 
 function H = donutPlot(data, varargin)
-
 
 % input parser defaults
 def.R=  10;             % outer radius
@@ -96,6 +99,7 @@ def.SA= 0;              % start angle 3 o'clock ('90' would be midnight)
 def.RP= 2;              % rounding precision 
 def.RS= 0.0250;         % ring separation (only for 'concentric' ori)
 def.PR= 300;            % resolution of 1 arc of largest patch
+def.PL= true;           % show text labels for arc value as a percentage
 def.OR= 'horizontal';   % orientation (has no effect if vector input)
 def.CS= 'category';     % color scheme
 def.ori_types= {'horizontal', 'vertical', 'concentric', 'h', 'v', 'c'};
@@ -105,7 +109,6 @@ user_inputs= varargin;
 
 % pass defaults to parser obj for validation
 [p, f]= validateInputs(data, def, user_inputs);
-
 
 % assign parsed user inputs -- radii, ringsep, and ori assigned at line 160
 dim=  p.Results.dim;
@@ -118,6 +121,8 @@ ec=   p.Results.edgeColor;
 tc=   p.Results.textColor; 
 prec= p.Results.precision; 
 res=  p.Results.patchRes; 
+pltx= p.Results.showLabels; 
+
 
 % force vector inputs to be row-wise
 if f.validArray(data)
@@ -142,8 +147,8 @@ dark= linspace(1, 0.1, nc)';  % darkness scaling
 
 % normalize groups that don't sum to 1
 if any(sum(data, dim) > 1+sqrt(eps))
-    ix2n= sum(data, dim) > 1+sqrt(eps);  % indices to normalize
-    data(ix2n, :)= data(ix2n, :) ./ sum(data(ix2n, :), dim);
+    ixn= sum(data, dim) > 1+sqrt(eps);  % indices to normalize
+    data(ixn, :)= data(ixn, :) ./ sum(data(ixn, :), dim);
 end
 
 % pre-allocate cells for arcs and cartesian coordinates
@@ -268,17 +273,20 @@ for n= 1:ng
                                         'FaceAlpha', 'flat', 'FaceColor', 'flat', ...
                                         'EdgeColor', ec, 'LineWidth', lw);   hold on
         end
-
-        lbls(n).series(1, j)= text(xt(n, j) + h(n), yt(n, j) + k(n), txt(n, j), ...
-                                   'color', tc, ...
-                                   'HorizontalAlignment', halign{n, j}, ...
-                                   'VerticalAlignment', valign{n, j});
+        if pltx             % plot text
+            lbls(n).series(1, j)= text(xt(n, j) + h(n), yt(n, j) + k(n), txt(n, j), ...
+                                       'color', tc, ...
+                                       'HorizontalAlignment', halign{n, j}, ...
+                                       'VerticalAlignment', valign{n, j});
+        end
     end
 end
 
-% position text labels on top of arcs
-for n= 1:ng
-    uistack(lbls(n).series, 'top')
+% position text labels on top of arcs, if plotted
+if pltx
+    for n= 1:ng
+        uistack(lbls(n).series, 'top')
+    end
 end
 
 set(gcf, 'color', 'w')
@@ -317,6 +325,7 @@ f.validColV=  @(x) f.validArray(x) && all(x >= 1);
 f.validColor= @(x) f.validRGB(x) || ischar(x);
 f.validFCol=  @(x) f.validRGB(x) || f.validColV(x) || iscellstr(x) || isstring(x); 
 f.colorCat=   @(x, y, z) strcmpi(x, 'category') && size(y, 1) == z; 
+f.validShlbl= @(x) islogical(x) || (isnumeric(x) && (x == 1 || x == 0));
 
 p= inputParser; 
 
@@ -335,6 +344,7 @@ addParameter(p, 'outerRadius', defaults.R, f.validDim);
 addParameter(p, 'ringSep', defaults.RS, f.validAlpha);
 addParameter(p, 'startAngle', defaults.SA, f.scalarNum);
 addParameter(p, 'patchRes', defaults.PR, f.validDim);
+addParameter(p, 'showLabels', defaults.PL, f.validShlbl);
 
 % parse and assign all inputs
 parse(p, data, varargs{:});
