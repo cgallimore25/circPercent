@@ -44,7 +44,7 @@
     %                default = 0.65
     % 'outerRadius', a non-negative scalar specifying outer patch radius
     % 'ringSep',     scalar in range [0, 1] specifying ring separation as a 
-    %                proportion of ring width. Similar to a duty cycle.
+    %                proportion of ring width. Think duty cycle.
     % 'startAngle',  scalar value in degrees specifying start angle where
     %                patches emanate. 0 degrees corresponds to 3 o'oclock.
     %                positive values rotate counterclockwise, negative
@@ -82,9 +82,6 @@
 
 function H = donutPlot(data, varargin)
 
-% static defaults -- center origin (h, k)
-h= 0;
-k= 0;
 
 % input parser defaults
 def.R=  10;             % outer radius
@@ -159,7 +156,7 @@ txt= strcat(string(round(data .* 100, prec)), repmat("%", ng, nc));
 fc= resolveColorSchemeMismatch(col, sc, ng, nc, f);
 
 % compute orientation dependent coordinates, text scaling, and axis limits
-[h, k, r, R, ori, txt_r, ax_limits]= getOriDependentCoords(p, user_inputs, h, k, ng); 
+[h, k, r, R, ori, txt_r, ax_limits]= getOriDependentCoords(p, user_inputs, ng); 
 
 
 % make arc start and finish points
@@ -387,7 +384,13 @@ end
 end
 
 %--------------------------------------------------------------------------
-function [h, k, r, R, ori, text_radius, ax_limits]= getOriDependentCoords(p_obj, user_inputs, h, k, ng)
+function [h, k, r, R, ori, text_radius, ax_limits]= getOriDependentCoords(p_obj, user_inputs, ng)
+
+% returns center + text coords, inner + outer radii, orientation, ax limits
+
+% start at origin
+h= zeros(1, ng); 
+k= zeros(1, ng); 
 
 R=    repmat(p_obj.Results.outerRadius, ng, 1); 
 r=    repmat(R(1) * p_obj.Results.innerRadius, ng, 1);
@@ -400,9 +403,7 @@ r_otr= any(strcmpi(user_inputs, 'outerRadius'));
 
 switch ori
     case {'concentric', 'c'}   % fix plot at origin & increment radius
-        h= zeros(1, ng); 
-        k= zeros(1, ng); 
-        if ~r_inr && ~r_otr    % if neither, rings are unit 1 starting at 2
+        if ~r_inr && ~r_otr    % if no user input, rings are unit 1 [2:n+1]
             r= (2:ng+1)';       
             R= r + (1-rs); 
         else                   % if either/both, use inputs/defaults
@@ -411,11 +412,9 @@ switch ori
             R= r + (i-(i*rs)); 
         end
     case {'horizontal', 'h'}   % step right for horz series (h)
-        h= h:(3*R+1):(3*R+1)*ng-1;       
-        k= zeros(1, ng); 
+        h(1:ng)= h(1):(3*R+1):(3*R+1)*ng-1;       
     case {'vertical', 'v'}     % step down for vert series (k)
-        h= zeros(1, ng); 
-        k= k:-(3*R+1):-((3*R+1)*ng-1);   
+        k(1:ng)= k(1):-(3*R+1):-((3*R+1)*ng-1);   
     otherwise
 end
 
