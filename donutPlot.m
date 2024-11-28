@@ -50,6 +50,8 @@
     %                patches emanate. 0 degrees corresponds to 3 o'oclock.
     %                positive values rotate counterclockwise, negative
     %                values clockwise. 
+    % 'direction',   specifies direction patches step from 'startAngle'
+    %                e.g. 'clockwise', 'cw', or 'counter-clockwise', 'ccw'
     % 'scheme',      'category' or 'series', determines coloring scheme. In
     %                one case, your 'facecolor' matrix may represent colors 
     %                of common 'categories' for all series (default).
@@ -101,8 +103,10 @@ def.RS= 0.0250;         % ring separation (only for 'concentric' ori)
 def.PR= 300;            % resolution of 1 arc of largest patch
 def.PL= true;           % show text labels for arc value as a percentage
 def.OR= 'horizontal';   % orientation (has no effect if vector input)
+def.PD= 'ccw';          % direction 
 def.CS= 'category';     % color scheme
 def.ori_types= {'horizontal', 'vertical', 'concentric', 'h', 'v', 'c'};
+def.dir_types= {'clockwise', 'cw', 'counterclockwise', 'counter-clockwise', 'ccw'};
 def.sch_types= {'category', 'series'}; 
 
 user_inputs= varargin; 
@@ -111,17 +115,18 @@ user_inputs= varargin;
 [p, f]= validateInputs(data, def, user_inputs);
 
 % assign parsed user inputs -- radii, ringsep, and ori assigned at line 160
-dim=  p.Results.dim;
-a=    p.Results.startAngle; 
-sc=   p.Results.scheme; 
-col=  p.Results.faceColor; 
-fa=   p.Results.faceAlpha;
-lw=   p.Results.lineWidth;
-ec=   p.Results.edgeColor;
-tc=   p.Results.textColor; 
-prec= p.Results.precision; 
-res=  p.Results.patchRes; 
-pltx= p.Results.showLabels; 
+dim=    p.Results.dim;
+a=      p.Results.startAngle; 
+d=      getPlotDirection(p.Results.direction);
+sc=     p.Results.scheme; 
+col=    p.Results.faceColor; 
+fa=     p.Results.faceAlpha;
+lw=     p.Results.lineWidth;
+ec=     p.Results.edgeColor;
+tc=     p.Results.textColor; 
+prec=   p.Results.precision; 
+res=    p.Results.patchRes; 
+pltx=   p.Results.showLabels; 
 
 
 % force vector inputs to be row-wise
@@ -167,7 +172,7 @@ fc= resolveColorSchemeMismatch(col, sc, ng, nc, f);
 % make arc start and finish points
 a0= deg2rad( a * ones(size(data, ng_dim), 1) );   % initialize start point
 p360= data .* 360;                      % data as proportion of 360 degrees
-af= deg2rad( cumsum(p360, nc_dim) + a ); 
+af= deg2rad( d * cumsum(p360, nc_dim) + a ); 
 a0(:, 2:nc)= af(:, 1:nc-1); 
 
 r0= repmat(r, 1, nc); 
@@ -338,6 +343,7 @@ addParameter(p, 'edgeColor', defaults.EC, f.validColor);
 addParameter(p, 'textColor', defaults.TC, f.validColor);
 addParameter(p, 'lineWidth', defaults.LW, f.validDim);
 addParameter(p, 'orientation', defaults.OR, @(x) any(validatestring(x, defaults.ori_types)));
+addParameter(p, 'direction', defaults.PD, @(x) any(validatestring(x, defaults.dir_types)));
 addParameter(p, 'precision', defaults.RP, f.validDim);
 addParameter(p, 'innerRadius', defaults.r, f.validAlpha);
 addParameter(p, 'outerRadius', defaults.R, f.validDim);
@@ -348,6 +354,22 @@ addParameter(p, 'showLabels', defaults.PL, f.validShlbl);
 
 % parse and assign all inputs
 parse(p, data, varargs{:});
+
+end
+
+%--------------------------------------------------------------------------
+function d= getPlotDirection(direction)
+
+% return plot direction
+
+switch direction
+  case {'clockwise', 'cw'}
+    d = -1;
+  case {'counterclockwise', 'counter-clockwise', 'ccw'}
+    d = 1;
+  otherwise
+    error(['unrecognized plot dir: ', direction]);
+end
 
 end
 
