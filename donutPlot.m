@@ -92,6 +92,7 @@ def.TC= 'k';            % text color
 def.LW= 1;              % line width
 def.SA= 0;              % start angle 3 o'clock ('90' would be midnight)
 def.RP= 2;              % rounding precision 
+def.RS= 0.0250;         % ring separation (only for 'concentric' ori)
 def.PR= 300;            % resolution of 1 arc of largest patch
 def.OR= 'horizontal';   % orientation (has no effect if vector input)
 def.CS= 'category';     % color scheme
@@ -105,6 +106,7 @@ def.sch_types= {'category', 'series'};
 dim=  p.Results.dim;
 R=    p.Results.outerRadius; 
 r=    R * p.Results.innerRadius;
+rs=   p.Results.ringSep; 
 a=    p.Results.startAngle; 
 ori=  p.Results.orientation; 
 sc=   p.Results.scheme; 
@@ -129,9 +131,9 @@ end
 
 n_dims= length(size(data)); 
 nc_dim= dim; 
-np_dim= find(~ismember(1:n_dims, dim));
+ng_dim= find(~ismember(1:n_dims, dim));
 
-np= size(data, np_dim);   % num percents to plot
+ng= size(data, ng_dim);   % num groups to plot
 nc= size(data, nc_dim);   % num components to total
 
 % only used if 'series' scheme is requested
@@ -144,20 +146,20 @@ if any(sum(data, dim) > 1+sqrt(eps))
 end
 
 % pre-allocate cells for arcs and cartesian coordinates
-[thetas, arcrds, x, y]= deal(cell(np, nc)); 
+[thetas, arcrds, x, y]= deal(cell(ng, nc)); 
 
 % pre-allocate txt strings for later based on rounding precision
-txt= strcat(string(round(data .* 100, prec)), repmat("%", np, nc)); 
+txt= strcat(string(round(data .* 100, prec)), repmat("%", ng, nc)); 
 
 % correct potential mismatches in user facecolor / scheme input
-fc= resolveColorSchemeMismatch(col, sc, np, nc, f);
+fc= resolveColorSchemeMismatch(col, sc, ng, nc, f);
 
 % compute orientation dependent coordinates, text scaling, and axis limits
-[h, k, r, R, txt_r, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np); 
+[h, k, r, R, txt_r, ax_limits]= getOriDependentCoords(ori, h, k, r, R, ng); 
 
 
 % make arc start and finish points
-a0= deg2rad( a * ones(size(data, np_dim), 1) );   % initialize start point
+a0= deg2rad( a * ones(size(data, ng_dim), 1) );   % initialize start point
 p360= data .* 360;                      % data as proportion of 360 degrees
 af= deg2rad( cumsum(p360, nc_dim) + a ); 
 a0(:, 2:nc)= af(:, 1:nc-1); 
@@ -167,13 +169,13 @@ rf= repmat(R, 1, nc);
 
 
 % check for zeros
-test_mat= [zeros(np, 1) af];
+test_mat= [zeros(ng, 1) af];
 zpos=  diff(test_mat, [], nc_dim) == 0; 
 zpres= any(any(zpos));
 
 % compute theta to evaluate arc for max non-zero percentage
-inc= zeros(np, 1); 
-for n= 1:np
+inc= zeros(ng, 1); 
+for n= 1:ng
     ix_nonz{n}= find(~zpos(n, :)); 
     [~, loc]= max(data(n, ix_nonz{n})); % index the max non-zero comp
     mnz(n)= ix_nonz{n}(loc);             % to prevent too small increment
@@ -184,7 +186,7 @@ for n= 1:np
 end
 
 % compute theta for remaining percentages using comparable increment
-for n= 1:np
+for n= 1:ng
     rest= find(~ismember(1:nc, mnz(n)));
     for c= rest
         n_pts= length( a0(n, c):inc(n):af(n, c) ); 
@@ -201,7 +203,7 @@ end
 
 % finally compute the circular arcs
 cartConv= @(t, r) pol2cart(t, r); 
-for n= 1:np
+for n= 1:ng
     [x(n, :), y(n, :)]= cellfun(cartConv, thetas(n, :), arcrds(n, :), 'UniformOutput', false);
     x(n, :)= cellfun(@(t) t + h(n), x(n , :), 'UniformOutput', false);
     y(n, :)= cellfun(@(r) r + k(n), y(n , :), 'UniformOutput', false);
@@ -214,7 +216,7 @@ y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false)
 
 % pre-allocate structure of graphics objects for each series
 if ~perfect_circle
-    for s= np:-1:1
+    for s= ng:-1:1
         arcs(s).series= gobjects(1, nc);
         lbls(s).series= gobjects(1, nc); 
     end
@@ -227,7 +229,7 @@ centerTheta= cellfun(@median, thetas);
 % determine text alignment based on orientation
 switch ori
     case {'concentric', 'c'}
-        [halign, valign]= deal( repmat({'center'}, np, nc), repmat({'middle'}, np, nc) ); 
+        [halign, valign]= deal( repmat({'center'}, ng, nc), repmat({'middle'}, ng, nc) ); 
     otherwise    
         [halign, valign]= cellfun(@getAlignmentFromAngle, num2cell(centerTheta), 'UniformOutput', false); 
 end
@@ -238,7 +240,7 @@ if isscalar(fa)
 end
 
 % plot arcs & percentages
-for n= 1:np
+for n= 1:ng
     % assign color matrix based on rule
     if strcmpi(sc, 'series')
         colors= repmat(fc(n, :), nc, 1) .* dark; 
@@ -274,14 +276,14 @@ for n= 1:np
 end
 
 % position text labels on top of arcs
-for n= 1:np
+for n= 1:ng
     uistack(lbls(n).series, 'top')
 end
 
 set(gcf, 'color', 'w')
 axis(ax_limits) 
 
-if np == 1
+if ng == 1
     axis square
 else
     axis image; 
@@ -329,6 +331,7 @@ addParameter(p, 'orientation', defaults.OR, @(x) any(validatestring(x, defaults.
 addParameter(p, 'precision', defaults.RP, f.validDim);
 addParameter(p, 'innerRadius', defaults.r, f.validAlpha);
 addParameter(p, 'outerRadius', defaults.R, f.validDim);
+addParameter(p, 'ringSep', defaults.RS, f.validAlpha);
 addParameter(p, 'startAngle', defaults.SA, f.scalarNum);
 addParameter(p, 'patchRes', defaults.PR, f.validDim);
 
@@ -338,13 +341,13 @@ parse(p, data, varargs{:});
 end
 
 %--------------------------------------------------------------------------
-function facecolor= resolveColorSchemeMismatch(color, sc, n_pcts, n_cats, fxns)
+function facecolor= resolveColorSchemeMismatch(color, sc, n_grps, n_cats, fxns)
 
 % parse color / color scheme args
 if isempty(color)
     if strcmpi(sc, 'series')
-        facecolor= distinguishable_colors(n_pcts*2);
-        facecolor= facecolor(n_pcts+1:end, :);
+        facecolor= distinguishable_colors(n_grps*2);
+        facecolor= facecolor(n_grps+1:end, :);
     else
         facecolor= distinguishable_colors(n_cats*2);
         facecolor= facecolor(n_cats+1:end, :);
@@ -362,12 +365,12 @@ end
 
 % resolve potential color / scheme input discrepancies
 if ~fxns.colorCat(sc, facecolor, n_cats)
-    if strcmpi(sc, 'series') && size(facecolor, 1) ~= n_pcts
+    if strcmpi(sc, 'series') && size(facecolor, 1) ~= n_grps
         warning(['series scheme was indicated, but a color matrix was either unspecified or ' ...
-                 'dim 1 of color matrix didnt match the number of data series(' num2str(n_pcts) ').' ...
+                 'dim 1 of color matrix didnt match the number of data series(' num2str(n_grps) ').' ...
                  ' making new colors as default.'])
-        facecolor= distinguishable_colors(n_pcts*2);
-        facecolor= facecolor(n_pcts+1:end, :);
+        facecolor= distinguishable_colors(n_grps*2);
+        facecolor= facecolor(n_grps+1:end, :);
         
     elseif strcmpi(sc, 'category') 
         warning(['category scheme was indicated, but dim 1 of color matrix didnt match the number ' ...
@@ -380,39 +383,40 @@ end
 end
 
 %--------------------------------------------------------------------------
-function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, np)
+function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, ng)
 
-% r = inner radius
-% R = outer radius
+% r =  inner radius
+% R =  outer radius
+% ng = n groups 
 
-r= repmat(r, np, 1); 
-R= repmat(R, np, 1); 
+r= repmat(r, ng, 1); 
+R= repmat(R, ng, 1); 
 
 switch ori
     case {'concentric', 'c'}    % fix plot at origin & increment radius
-        h= zeros(1, np); 
-        k= zeros(1, np); 
-        r= (2:np+1)';           % override any innerRadius argument
+        h= zeros(1, ng); 
+        k= zeros(1, ng); 
+        r= (2:ng+1)';           % override any innerRadius argument
         R= r + 0.975; 
     case {'horizontal', 'h'}    % step right for horz series (h)
-        h= h:(3*R+1):(3*R+1)*np-1;       
-        k= zeros(1, np); 
+        h= h:(3*R+1):(3*R+1)*ng-1;       
+        k= zeros(1, ng); 
     case {'vertical', 'v'}      % step down for vert series (k)
-        h= zeros(1, np); 
-        k= k:-(3*R+1):-((3*R+1)*np-1);   
+        h= zeros(1, ng); 
+        k= k:-(3*R+1):-((3*R+1)*ng-1);   
     otherwise
 end
 
 % pre-set ax limits
-x1= h-R-np;   x2= h+R+np;    y1= k-R-np;    y2= k+R+np;
+x1= h-R-ng;   x2= h+R+ng;    y1= k-R-ng;    y2= k+R+ng;
 
 switch ori
     case {'concentric', 'c'}
         text_radius= (R + r) / 2;  % average inner & outer radii
-        x_lo= x1(np); x_hi= x2(np); y_lo= y1(np); y_hi= y2(np); 
+        x_lo= x1(ng); x_hi= x2(ng); y_lo= y1(ng); y_hi= y2(ng); 
     otherwise
         text_radius= R * 1.05;     % position outside the rings
-        x_lo= x1(1);  x_hi= x2(np);  y_lo= y1(np);  y_hi= y2(1); 
+        x_lo= x1(1);  x_hi= x2(ng);  y_lo= y1(ng);  y_hi= y2(1); 
 end
 
 ax_limits= [x_lo x_hi y_lo y_hi]; 
