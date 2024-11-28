@@ -43,6 +43,8 @@
     %                a value of '1' creates a ring with no visible slices
     %                default = 0.65
     % 'outerRadius', a non-negative scalar specifying outer patch radius
+    % 'ringSep',     scalar in range [0, 1] specifying ring separation as a 
+    %                proportion of ring width. Similar to a duty cycle.
     % 'startAngle',  scalar value in degrees specifying start angle where
     %                patches emanate. 0 degrees corresponds to 3 o'oclock.
     %                positive values rotate counterclockwise, negative
@@ -57,6 +59,9 @@
     %              used to represent the largest arc. Subsequent (smaller) 
     %              arcs are represented in proportion to this
 
+
+% NOTE TO SELF: may need to disentangle alpha validation fxn from other
+% inputs (like ring sep)
 
 % Outputs:
 % a structure of handles 'H' to the line 'arcs', text labels ('lbls'), and
@@ -99,16 +104,15 @@ def.CS= 'category';     % color scheme
 def.ori_types= {'horizontal', 'vertical', 'concentric', 'h', 'v', 'c'};
 def.sch_types= {'category', 'series'}; 
 
-% pass defaults to parser obj for validation
-[p, f]= validateInputs(data, def, varargin);
+user_inputs= varargin; 
 
-% assign parsed user inputs
+% pass defaults to parser obj for validation
+[p, f]= validateInputs(data, def, user_inputs);
+
+
+% assign parsed user inputs -- radii, ringsep, and ori assigned at line 160
 dim=  p.Results.dim;
-R=    p.Results.outerRadius; 
-r=    R * p.Results.innerRadius;
-rs=   p.Results.ringSep; 
 a=    p.Results.startAngle; 
-ori=  p.Results.orientation; 
 sc=   p.Results.scheme; 
 col=  p.Results.faceColor; 
 fa=   p.Results.faceAlpha;
@@ -155,7 +159,7 @@ txt= strcat(string(round(data .* 100, prec)), repmat("%", ng, nc));
 fc= resolveColorSchemeMismatch(col, sc, ng, nc, f);
 
 % compute orientation dependent coordinates, text scaling, and axis limits
-[h, k, r, R, txt_r, ax_limits]= getOriDependentCoords(ori, h, k, r, R, ng); 
+[h, k, r, R, ori, txt_r, ax_limits]= getOriDependentCoords(p, user_inputs, h, k, ng); 
 
 
 % make arc start and finish points
@@ -383,25 +387,33 @@ end
 end
 
 %--------------------------------------------------------------------------
-function [h, k, r, R, text_radius, ax_limits]= getOriDependentCoords(ori, h, k, r, R, ng)
+function [h, k, r, R, ori, text_radius, ax_limits]= getOriDependentCoords(p_obj, user_inputs, h, k, ng)
 
-% r =  inner radius
-% R =  outer radius
-% ng = n groups 
+R=    repmat(p_obj.Results.outerRadius, ng, 1); 
+r=    repmat(R(1) * p_obj.Results.innerRadius, ng, 1);
+rs=   p_obj.Results.ringSep; 
+ori=  p_obj.Results.orientation; 
 
-r= repmat(r, ng, 1); 
-R= repmat(R, ng, 1); 
+% determine if radius arguments were input
+r_inr= any(strcmpi(user_inputs, 'innerRadius'));
+r_otr= any(strcmpi(user_inputs, 'outerRadius'));
 
 switch ori
-    case {'concentric', 'c'}    % fix plot at origin & increment radius
+    case {'concentric', 'c'}   % fix plot at origin & increment radius
         h= zeros(1, ng); 
         k= zeros(1, ng); 
-        r= (2:ng+1)';           % override any innerRadius argument
-        R= r + 0.975; 
-    case {'horizontal', 'h'}    % step right for horz series (h)
+        if ~r_inr && ~r_otr    % if neither, rings are unit 1 starting at 2
+            r= (2:ng+1)';       
+            R= r + (1-rs); 
+        else                   % if either/both, use inputs/defaults
+            r= linspace(r(1), R(1), ng+1)'; r(end)= []; 
+            i= mean(diff(r)); 
+            R= r + (i-(i*rs)); 
+        end
+    case {'horizontal', 'h'}   % step right for horz series (h)
         h= h:(3*R+1):(3*R+1)*ng-1;       
         k= zeros(1, ng); 
-    case {'vertical', 'v'}      % step down for vert series (k)
+    case {'vertical', 'v'}     % step down for vert series (k)
         h= zeros(1, ng); 
         k= k:-(3*R+1):-((3*R+1)*ng-1);   
     otherwise
