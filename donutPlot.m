@@ -330,6 +330,7 @@ end
 end
 
 
+
 %% Helper functions--------------------------------------------------------
 
 function [p, f]= validateInputs(data, defaults, varargs)
@@ -587,8 +588,6 @@ y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false)
 
 verts= [vertcat(x_vtx{:}) vertcat(y_vtx{:})]; 
 faces= reshape(1:size(verts, 1), [], ng)'; 
-
-color= repmat([.8 .8 .8], ng, 1); 
 
 center_th= cellfun(@median, th); 
 [xt, yt]= pol2cart(center_th, txt_rad); 
