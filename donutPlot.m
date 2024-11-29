@@ -103,7 +103,7 @@ def.RS= 0.0250;         % ring separation (only for 'concentric' ori)
 def.PR= 300;            % resolution of 1 arc of largest patch
 def.PL= true;           % show text labels for arc value as a percentage
 def.OR= 'horizontal';   % orientation (has no effect if vector input)
-def.PD= 'ccw';          % direction 
+def.PD= 'ccw';          % direction (clockwise, cw/ counter-clockwise, ccw)
 def.CS= 'category';     % color scheme
 def.ori_types= {'horizontal', 'vertical', 'concentric', 'h', 'v', 'c'};
 def.dir_types= {'clockwise', 'cw', 'counterclockwise', 'counter-clockwise', 'ccw'};
@@ -360,7 +360,7 @@ end
 %--------------------------------------------------------------------------
 function d= getPlotDirection(direction)
 
-% return plot direction
+% modify 'd' for clockwise or counter-clockwise
 
 switch direction
   case {'clockwise', 'cw'}
