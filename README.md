@@ -3,14 +3,22 @@
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=cgallimore25/circPercent&file=README.md)
 
 # donutPlot
-Use circular arcs to graphically illustrate proportions and percentages in MATLAB. For a fully comprehensive demo of usage and special case handling within the function, I recommend checking out the demo file `donutPlot_demo.mlx`.
+Use circular arcs to graphically illustrate proportions and percentages in MATLAB. 
+For a fully comprehensive demo of usage, special case handling, and the latest features, checkout the demo file `donutPlot_demo.mlx`.
 
-Catalog of changes in version `2.0.0` (formerly 'circPercent'):
+This function was designed to allow more complicated inputs and user control over the native `'pie.m'` function, while producing arcs in exactly the same way as `'pie()'` wedges in its handling of uncommon cases. 
+It further expands `'pie()'` by supporting matrix input, direct specification of `'facecolor'`, and compatibility with `colormap()` calls. 
+With exception of categorical data treatment, it also builds upon MATLAB's 2023 introduction of 'donutchart()' by allowing most of the same essential features and more. 
+One example is a `'concentric'` plotting style embedding multiple groups in a single donut, control over ring separation with this style, and addition of a custom radial legend to indicate group membership. 
+
+Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 - Converted plotted elements from line to patch objects for both fill and edge customization
 - Support for concentric plotting style, embedding data series inside-out
 - New name, value pairs for user-defined start angle, donut radius, transparency, linewidth, and text color
 - Transitioned to an input parser object for flexible argument handling
-- Modularization of coordinate calculations and special cases
+- Modularization of coordinate calculations, special cases, and directional control
+- Added ring separation parameter for user control of visible spacing (specific to `'concentric'` style)
+- Support for a radial legend indicating groups (specific to `'concentric'` style)
 
 
 ## Syntax:
@@ -34,10 +42,10 @@ Catalog of changes in version `2.0.0` (formerly 'circPercent'):
 ## Name-Value Pair Arguments:
 *(Optional; case insensitive)*
 
--**'faceColor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. 1:m).
+-**'faceColor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. `1:m`).
                      [m x 3 vector | matrix]
 
--**'edgeColor'**   - same as 'facecolor', but only specify one that will be applied to all patch edges (e.g. 'w', or 'k').
+-**'edgeColor'**   - same as 'facecolor', but only specify one that will be applied to all patch edges (e.g. `'w'`, or `'k'`).
                      [RGB triplet | char]
 
 -**'textColor'**   - same as 'edgecolor'
@@ -48,26 +56,35 @@ Catalog of changes in version `2.0.0` (formerly 'circPercent'):
 -**'lineWidth'**   - a positive scalar value in points (1 pt = 1/72 inches).
 
 -**'orientation'** - 'horizontal', 'vertical', or 'concentric'; this argument only exerts effects for more than 1 data series, determining whether they are plotted from 
-                     left-to-right, top-to-bottom, or 'inside-to-outside'. Can also use shorthand forms 'h', 'v', 'c'.
-                     ['horizontal' | 'vertical' | 'concentric' | 'h' | 'v' | 'c']
+                     left-to-right, top-to-bottom, or 'inside-to-outside'. One letter shorthand forms are available for each.
+                     [`'horizontal'` | `'vertical'` | `'concentric'` | `'h'` | `'v'` | `'c'`]
 
 -**'precision'**   - specifies the rounding precision for text labels (i.e. the max number of decimal places to keep)
-                     [0 | 1 | ... n | non-negative scalar]
+                     [`0` | `1` | ... `n` | non-negative scalar]
 
 -**'innerRadius'** - scalar in range [0, 1] specifying the inner radius of patches as a proportion of the outer radius. A value of '0' creates a pie chart; a value of '1' creates a ring with no visible slices 
-                     [0.65 (default) | scalar]
+                     [`0.65` (default) | scalar]
 
 -**'outerRadius'** - a non-negative scalar specifying outer patch radius. Most applicable for 'horizontal' or 'vertical', whereas 'concentric' defaults to ring widths of radius 1 and this argument is ignored.
 
 -**'startAngle'**  - scalar value in degrees specifying start angle where patches emanate. 0 degrees corresponds to 3 o'oclock. Positive values rotate counterclockwise, negative values clockwise.
-                     [0 (default) | scalar]
+                     [`0` (default) | scalar]
 
--**'scheme'**      - 'category' or 'series', determines the coloring scheme. In one case, your 'color' matrix may represent the color you want each common 'category' to be for all series (default). 
+-**'direction'**   - specifies direction patches step from `'startAngle'`.
+                     [`'clockwise'`, `'cw'`, | `'counter-clockwise'`, `'ccw'` (default)]
+
+-**'scheme'**      - `'category'` or `'series'`, determines the coloring scheme. In one case, your 'color' matrix may represent the color you want each common 'category' to be for all series (default). 
                      In another case, you may be specifying the base color you want your percentage components to be for each 'series'. In this option, subsequent percentages will be plotted darker.
-                     ['category' | 'series']
+                     [`'category'` | `'series'`]
 
 -**'patchRes'**    - a positive scalar value specifying the number of points used to represent the largest arc. Subsequent (smaller) arcs are represented in proportion to this.
-                     [300 (default) | positive scalar]
+                     [`300` (default) | positive scalar]
+
+-**'showLabels'**  - permits suppression of overlaying value labels when set to false. 
+                     [`true` (default) | `false` | `0` | `1`]
+
+-**showLegend**    - specific to the 'concentric' plotting orientation, followed by a string array of legend labels equal to n groups.
+                     [string array]
 
 
 ## Examples
