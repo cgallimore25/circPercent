@@ -61,7 +61,11 @@
     % 'patchRes',    a positive scalar value specifying the n points used 
     %                to represent the largest arc. Subsequent (smaller) 
     %                arcs are represented in proportion to this
-    % 'showLabels',  accepts logical (T/F) or numeric (0/1), default = true
+    % 'showLabels',  permits suppression of overlaying value labels when 
+    %                false; accepts logical (T/F) or numeric (0/1), 
+    %                default = true
+    % 'showLegend',  specific to the 'concentric' plotting orientation, 
+    %                a string array of legend labels equal to n groups
 
 
 % Outputs:
