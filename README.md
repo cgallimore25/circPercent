@@ -6,9 +6,9 @@
 Use circular arcs to graphically illustrate proportions and percentages in MATLAB. 
 For a fully comprehensive demo of usage, special case handling, and the latest features, checkout the demo file `donutPlot_demo.mlx`.
 
-This function was designed to allow more complicated inputs and user control over the native `'pie.m'` function, while producing arcs in exactly the same way as `'pie()'` wedges in its handling of uncommon cases. 
-It further expands `'pie()'` by supporting matrix input, direct specification of `'facecolor'`, and compatibility with `colormap()` calls. 
-With exception of categorical data treatment, it also builds upon MATLAB's 2023 introduction of `'donutchart()'` by allowing most of the same essential features and more. 
+This function was designed to allow more complicated inputs and user control over the native `'pie.m'` function, while producing arcs in exactly the same way as `pie()` wedges in its handling of uncommon cases. 
+It further expands `pie()` by supporting matrix input, direct specification of `'facecolor'`, and compatibility with `colormap()` calls. 
+With exception of categorical data treatment, it also builds upon MATLAB's 2023 introduction of `donutchart()` by allowing most of the same essential features and more. 
 One example is a `'concentric'` plotting style embedding multiple groups in a single donut, control over ring separation with this style, and addition of a custom radial legend to indicate group membership. 
 
 Catalog of changes in version `2.0.1` (formerly 'circPercent'):
