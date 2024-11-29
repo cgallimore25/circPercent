@@ -88,6 +88,9 @@
 
 function H = donutPlot(data, varargin)
 
+fig= gcf; 
+ax= axes('Parent', fig); 
+
 % input parser defaults
 def.R=  10;             % outer radius
 def.r=  0.65;           % inner radius as a proportion of outer radius
@@ -102,6 +105,7 @@ def.RP= 2;              % rounding precision
 def.RS= 0.0250;         % ring separation (only for 'concentric' ori)
 def.PR= 300;            % resolution of 1 arc of largest patch
 def.PL= true;           % show text labels for arc value as a percentage
+def.SL= [];             % show radial key for concentric plots
 def.OR= 'horizontal';   % orientation (has no effect if vector input)
 def.PD= 'ccw';          % direction (clockwise, cw/ counter-clockwise, ccw)
 def.CS= 'category';     % color scheme
@@ -127,6 +131,7 @@ tc=     p.Results.textColor;
 prec=   p.Results.precision; 
 res=    p.Results.patchRes; 
 pltx=   p.Results.showLabels; 
+gtxt=   p.Results.showLegend; 
 
 
 % force vector inputs to be row-wise
@@ -170,10 +175,7 @@ fc= resolveColorSchemeMismatch(col, sc, ng, nc, f);
 
 
 % make arc start and finish points
-a0= deg2rad( a * ones(size(data, ng_dim), 1) );   % initialize start point
-p360= data .* 360;                      % data as proportion of 360 degrees
-af= deg2rad( d * cumsum(p360, nc_dim) + a ); 
-a0(:, 2:nc)= af(:, 1:nc-1); 
+[a0, af]= makeArcStartEndPts(data, a, d, nc, ng_dim, nc_dim);
 
 r0= repmat(r, 1, nc); 
 rf= repmat(R, 1, nc); 
@@ -213,9 +215,9 @@ end
 
 
 % finally compute the circular arcs
-cartConv= @(t, r) pol2cart(t, r); 
+f.cartConv= @(t, r) pol2cart(t, r); 
 for n= 1:ng
-    [x(n, :), y(n, :)]= cellfun(cartConv, thetas(n, :), arcrds(n, :), 'UniformOutput', false);
+    [x(n, :), y(n, :)]= cellfun(f.cartConv, thetas(n, :), arcrds(n, :), 'UniformOutput', false);
     x(n, :)= cellfun(@(t) t + h(n), x(n , :), 'UniformOutput', false);
     y(n, :)= cellfun(@(r) r + k(n), y(n , :), 'UniformOutput', false);
 end
@@ -241,6 +243,11 @@ centerTheta= cellfun(@median, thetas);
 switch ori
     case {'concentric', 'c'}
         [halign, valign]= deal( repmat({'center'}, ng, nc), repmat({'middle'}, ng, nc) ); 
+        if ~isempty(gtxt)
+            create_lgd= true; 
+            [lf, lv, lbls_xy]= computeRadialLegend(f, ng); 
+            set(ax, 'Position', [0.1, 0.1, 0.7, 0.8]);
+        end
     otherwise    
         [halign, valign]= cellfun(@getAlignmentFromAngle, num2cell(centerTheta), 'UniformOutput', false); 
 end
@@ -268,7 +275,7 @@ for n= 1:ng
 
         if perfect_circle   % use polyshape
             arcs(n).series(1, j)= polyshape([x_vtx{n, j} y_vtx{n, j}]);   
-            plot(arcs(n).series(1, j), 'FaceColor', colors(j, :), 'FaceAlpha', fa(n, j), ...
+            plot(ax, arcs(n).series(1, j), 'FaceColor', colors(j, :), 'FaceAlpha', fa(n, j), ...
                                        'EdgeColor', ec, 'LineWidth', lw); hold on
         else                % use patch
             arcs(n).series(1, j)= patch('Faces',    1:length(x_vtx{n, j}), ...
@@ -276,11 +283,12 @@ for n= 1:ng
                                         'FaceVertexCData', colors(j, :), ...
                                         'FaceVertexAlphaData', fa(n, j), ...
                                         'FaceAlpha', 'flat', 'FaceColor', 'flat', ...
-                                        'EdgeColor', ec, 'LineWidth', lw);   hold on
+                                        'EdgeColor', ec, 'LineWidth', lw, ...
+                                        'Parent', ax);   hold on
         end
         if pltx             % plot text
-            lbls(n).series(1, j)= text(xt(n, j) + h(n), yt(n, j) + k(n), txt(n, j), ...
-                                       'color', tc, ...
+            lbls(n).series(1, j)= text(ax, xt(n, j) + h(n), yt(n, j) + k(n), ...
+                                       txt(n, j), 'color', tc, ...
                                        'HorizontalAlignment', halign{n, j}, ...
                                        'VerticalAlignment', valign{n, j});
         end
@@ -294,7 +302,7 @@ if pltx
     end
 end
 
-set(gcf, 'color', 'w')
+set(fig, 'color', 'w')
 axis(ax_limits) 
 
 if ng == 1
@@ -304,9 +312,20 @@ else
 end
 axis off; 
 
+% create legend (concentric plots only)
+if create_lgd
+    lgd= plotRadialLgd(fig, lf, lv, gtxt, lbls_xy); 
+end
+
+% assign output to structure
+H.axH=   ax; 
 H.arcH=  arcs;
 H.txtH=  lbls; 
 H.color= colors; 
+
+if exist('lgd', 'var')
+    H.lgdH= lgd;
+end
 
 end
 
@@ -330,7 +349,7 @@ f.validColV=  @(x) f.validArray(x) && all(x >= 1);
 f.validColor= @(x) f.validRGB(x) || ischar(x);
 f.validFCol=  @(x) f.validRGB(x) || f.validColV(x) || iscellstr(x) || isstring(x); 
 f.colorCat=   @(x, y, z) strcmpi(x, 'category') && size(y, 1) == z; 
-f.validShlbl= @(x) islogical(x) || (isnumeric(x) && (x == 1 || x == 0));
+f.validBool=  @(x) islogical(x) || (isnumeric(x) && (x == 1 || x == 0));
 
 p= inputParser; 
 
@@ -350,7 +369,8 @@ addParameter(p, 'outerRadius', defaults.R, f.validDim);
 addParameter(p, 'ringSep', defaults.RS, f.validAlpha);
 addParameter(p, 'startAngle', defaults.SA, f.scalarNum);
 addParameter(p, 'patchRes', defaults.PR, f.validDim);
-addParameter(p, 'showLabels', defaults.PL, f.validShlbl);
+addParameter(p, 'showLabels', defaults.PL, f.validBool);
+addParameter(p, 'showLegend', defaults.SL, @isstring);
 
 % parse and assign all inputs
 parse(p, data, varargs{:});
@@ -467,6 +487,17 @@ ax_limits= [x_lo x_hi y_lo y_hi];
 end
 
 %--------------------------------------------------------------------------
+function [a0, af]= makeArcStartEndPts(data, start_ang, dir, n_cats, grp_dim, cat_dim)
+
+a_tmp= ones(size(data, grp_dim), 1); 
+a0= deg2rad( start_ang * a_tmp );     % initialize start point
+p360= data .* 360;                    % data as proportion of 360 degrees
+af= deg2rad( dir * cumsum(p360, cat_dim) + start_ang ); 
+a0(:, 2:n_cats)= af(:, 1:n_cats-1); 
+
+end
+
+%--------------------------------------------------------------------------
 function [thetas, fill100]= handleSpecialZeroCases(data, thetas, zpres, zpos, max_nonzero_ix)
 
 fill100= false; 
@@ -524,5 +555,86 @@ elseif angle > 180 && angle < 360
 else
     valign = 'bottom';
 end
+
+end
+
+%--------------------------------------------------------------------------
+function [faces, verts, lgd_lbls_xy]= computeRadialLegend(f, ng)
+
+a= 90; 
+d= -1; 
+rs= 0.25; 
+r= 0:ng-1; 
+R= (1-rs):1:(ng-rs); 
+
+qdrnt= repmat(0.25, ng, 1); 
+
+[a0, af]= makeArcStartEndPts(qdrnt, a, d, 1, 1, 2);
+
+txt_rad= (R + r) / 2; 
+
+[th, ar]= deal(cell(1, ng)); 
+
+for n= 1:ng
+    th{n}= linspace(a0(n), af(ng))'; 
+    ar{n}= [repmat(r(n), 100, 1), repmat(R(n), 100, 1)];
+end
+
+[x, y]= cellfun(f.cartConv, th, ar, 'UniformOutput', false);
+
+x_vtx= cellfun(@(t) [t(:, 1); flipud(t(:, 2)); t(1)], x, 'UniformOutput', false); 
+y_vtx= cellfun(@(r) [r(:, 1); flipud(r(:, 2)); r(1)], y, 'UniformOutput', false); 
+
+verts= [vertcat(x_vtx{:}) vertcat(y_vtx{:})]; 
+faces= reshape(1:size(verts, 1), [], ng)'; 
+
+color= repmat([.8 .8 .8], ng, 1); 
+
+center_th= cellfun(@median, th); 
+[xt, yt]= pol2cart(center_th, txt_rad); 
+
+lgd_lbls_xy= [xt', yt'];  
+
+end
+
+%--------------------------------------------------------------------------
+function lgdH= plotRadialLgd(fig, faces, verts, grp_txt, lbl_coords)
+
+xt= lbl_coords(:, 1); 
+yt= lbl_coords(:, 2);
+ng= length(xt); 
+color= repmat([.8 .8 .8], ng, 1); 
+
+% create uipanel for custom legend, positioned northeast
+lgd_panel= uipanel('Parent', fig, ...
+                   'Units', 'normalized', ...
+                   'Position', [0.72, 0.72, 0.2, 0.25], ... % [x, y, w, h] outside main axes
+                   'Title', 'Radial Key', ...
+                   'BackgroundColor', 'w', ...
+                   'BorderType', 'line');
+
+lgd_panel.TitlePosition= 'centertop'; 
+
+% create axes inside panel for graphics
+lgdH= axes('Parent', lgd_panel, ...
+           'Position', [0, 0, 1, 1], ...
+           'XColor', 'none', ...
+           'YColor', 'none');
+
+% draw patches 
+hold(lgdH, 'on');
+patch('Faces', faces, 'Vertices', verts, ...
+      'FaceColor', 'flat', 'FaceVertexCData', color, ...
+      'EdgeColor', 'w', 'LineWidth', 2)
+
+% add text labels 
+text(xt, yt, grp_txt, ...
+     'HorizontalAlignment', 'center', ...
+     'VerticalAlignment', 'middle', ...
+     'FontSize', 10)
+axis image; 
+
+% adjust axes limits 
+axis(lgdH, [-1 ng -1 ng]);
 
 end
