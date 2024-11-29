@@ -8,7 +8,7 @@ For a fully comprehensive demo of usage, special case handling, and the latest f
 
 This function was designed to allow more complicated inputs and user control over the native `'pie.m'` function, while producing arcs in exactly the same way as `'pie()'` wedges in its handling of uncommon cases. 
 It further expands `'pie()'` by supporting matrix input, direct specification of `'facecolor'`, and compatibility with `colormap()` calls. 
-With exception of categorical data treatment, it also builds upon MATLAB's 2023 introduction of 'donutchart()' by allowing most of the same essential features and more. 
+With exception of categorical data treatment, it also builds upon MATLAB's 2023 introduction of `'donutchart()'` by allowing most of the same essential features and more. 
 One example is a `'concentric'` plotting style embedding multiple groups in a single donut, control over ring separation with this style, and addition of a custom radial legend to indicate group membership. 
 
 Catalog of changes in version `2.0.1` (formerly 'circPercent'):
@@ -45,18 +45,18 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 -**'faceColor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. `1:m`).
                      [m x 3 vector | matrix]
 
--**'edgeColor'**   - same as 'facecolor', but only specify one that will be applied to all patch edges (e.g. `'w'`, or `'k'`).
+-**'edgeColor'**   - same as `'facecolor'`, but only specify one that will be applied to all patch edges (e.g. `'w'`, or `'k'`).
                      [RGB triplet | char]
 
--**'textColor'**   - same as 'edgecolor'
+-**'textColor'**   - same as `'edgecolor'`
                      [RGB triplet | char]
 
 -**'faceAlpha'**   - scalar in range [0, 1] specifying opacity.
 
 -**'lineWidth'**   - a positive scalar value in points (1 pt = 1/72 inches).
 
--**'orientation'** - 'horizontal', 'vertical', or 'concentric'; this argument only exerts effects for more than 1 data series, determining whether they are plotted from 
-                     left-to-right, top-to-bottom, or 'inside-to-outside'. One letter shorthand forms are available for each.
+-**'orientation'** - `'horizontal'`, `'vertical'`, or `'concentric'`; this argument only exerts effects for more than 1 data series, determining whether they are plotted from 
+                     left-to-right, top-to-bottom, or 'inside-to-outside', respectively. One letter shorthand forms are available for each.
                      [`'horizontal'` | `'vertical'` | `'concentric'` | `'h'` | `'v'` | `'c'`]
 
 -**'precision'**   - specifies the rounding precision for text labels (i.e. the max number of decimal places to keep)
@@ -65,9 +65,9 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 -**'innerRadius'** - scalar in range [0, 1] specifying the inner radius of patches as a proportion of the outer radius. A value of '0' creates a pie chart; a value of '1' creates a ring with no visible slices 
                      [`0.65` (default) | scalar]
 
--**'outerRadius'** - a non-negative scalar specifying outer patch radius. Most applicable for 'horizontal' or 'vertical', whereas 'concentric' defaults to ring widths of radius 1 and this argument is ignored.
+-**'outerRadius'** - a non-negative scalar specifying outer patch radius. Most applicable for `'horizontal'` or `'vertical'` orientations, whereas `'concentric'` defaults to ring widths of radius 1 and this argument is ignored.
 
--**'startAngle'**  - scalar value in degrees specifying start angle where patches emanate. 0 degrees corresponds to 3 o'oclock. Positive values rotate counterclockwise, negative values clockwise.
+-**'startAngle'**  - scalar value in degrees specifying start angle where patches emanate. `0` corresponds to 3 o'oclock. Positive values rotate counterclockwise, negative values clockwise.
                      [`0` (default) | scalar]
 
 -**'direction'**   - specifies direction patches step from `'startAngle'`.
@@ -83,7 +83,7 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 -**'showLabels'**  - permits suppression of overlaying value labels when set to false. 
                      [`true` (default) | `false` | `0` | `1`]
 
--**showLegend**    - specific to the 'concentric' plotting orientation, followed by a string array of legend labels equal to n groups.
+-**showLegend**    - specific to the `'concentric'` plotting orientation, followed by a string array of legend labels equal to n groups.
                      [string array]
 
 
