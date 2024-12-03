@@ -113,6 +113,7 @@ def.SL= [];             % show radial key for concentric plots
 def.OR= 'horizontal';   % orientation (has no effect if vector input)
 def.PD= 'ccw';          % direction (clockwise, cw/ counter-clockwise, ccw)
 def.CS= 'category';     % color scheme
+def.make_lgd=  false; 
 def.ori_types= {'horizontal', 'vertical', 'concentric', 'h', 'v', 'c'};
 def.dir_types= {'clockwise', 'cw', 'counterclockwise', 'counter-clockwise', 'ccw'};
 def.sch_types= {'category', 'series'}; 
@@ -248,7 +249,7 @@ switch ori
     case {'concentric', 'c'}
         [halign, valign]= deal( repmat({'center'}, ng, nc), repmat({'middle'}, ng, nc) ); 
         if ~isempty(gtxt)
-            create_lgd= true; 
+            def.make_lgd= true; 
             [lf, lv, lbls_xy]= computeRadialLegend(f, ng); 
             set(ax, 'Position', [0.1, 0.1, 0.7, 0.8]);
         end
@@ -317,7 +318,7 @@ end
 axis off; 
 
 % create legend (concentric plots only)
-if create_lgd
+if def.make_lgd
     lgd= plotRadialLgd(fig, lf, lv, gtxt, lbls_xy); 
 end
 
