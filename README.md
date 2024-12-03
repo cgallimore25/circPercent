@@ -83,7 +83,7 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 -**'showLabels'**  - permits suppression of overlaying value labels when set to false. 
                      [`true` (default) | `false` | `0` | `1`]
 
--**showLegend**    - specific to the `'concentric'` plotting orientation, followed by a string array of legend labels equal to n groups.
+-**'showLegend'**  - specific to the `'concentric'` plotting orientation, followed by a string array of legend labels equal to n groups.
                      [string array]
 
 
