@@ -204,10 +204,12 @@ data= [0.2445	0.2554	0.3237	0.1762;
        0.1402	0.3639	0.2439	0.2518];
 
 figure;  
-subplot(1, 2, 1)
-donutPlot(data, 2, 'orientation', 'c', 'precision', 1);
-subplot(1, 2, 2)
-donutPlot(data, 2, 'startangle', 90, 'orientation', 'c', 'precision', 0);
+sp(1)= subplot(1, 3, 1);
+donutPlot(data, sp(1), 'orientation', 'c', 'precision', 1);
+sp(2)= subplot(1, 3, 2);
+donutPlot(data, sp(2), 'orientation', 'c', 'precision', 0, 'startangle', 90);
+sp(3)= subplot(1, 3, 3);
+donutPlot(data, sp(3), 'orientation', 'c', 'precision', 0, 'startangle', 90,  'direction', 'cw');
 ```
 <p align="center">
   <img src="examples/example_004.png">
