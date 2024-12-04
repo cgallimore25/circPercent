@@ -120,7 +120,7 @@ Notice that the function implicitly assumes that groups are distributed along th
 ```matlab
 % Create plot
 figure;
-donutPlot(data, 2);
+donutPlot(data);
 ```
 or '1' if your input data is transposed (column = group, rows = components).
 
@@ -133,7 +133,7 @@ data= [0.2445	0.2554	0.3237	0.1762;
        0.1402	0.3639	0.2439	0.2518]; 
 
 figure;
-donutPlot(data, 2, 'orientation', 'vertical');
+donutPlot(data, 'orientation', 'vertical');
 ```
 <p align="center">
   <img src="examples/example_002a.png">
@@ -146,7 +146,7 @@ data= [0.2445	0.2554	0.3237	0.1762;
        0.1402	0.3639	0.2439	0.2518]; 
 
 figure;
-donutPlot(data, 2, 'orientation', 'concentric');
+donutPlot(data, 'orientation', 'concentric');
 ```
 <p align="center">
   <img src="examples/example_002b.png">
@@ -227,11 +227,11 @@ data= [0.2445	0.2554	0.3237	0.1762;
 
 figure;  
 subplot(1, 3, 1)
-donutPlot(data, 2, 'orientation', 'c', 'precision', 0);
+donutPlot(data, 'orientation', 'c', 'precision', 0);
 subplot(1, 3, 2)
-donutPlot(data, 2, 'orientation', 'c', 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+donutPlot(data, 'orientation', 'c', 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
 subplot(1, 3, 3)
-donutPlot(data, 2, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'textcolor', 'r', 'startangle', 90, 'precision', 0);
+donutPlot(data, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'textcolor', 'r', 'startangle', 90, 'precision', 0);
 ```
 <p align="center">
   <img src="examples/example_005.png">
@@ -253,7 +253,7 @@ simple_colrs= [1 0 0;
               1 0 1];
 
 figure;
-donutPlot(data, 2, 'facecolor', simple_colrs, 'precision', 0, 'edgecolor', 'w', 'linewidth', 2);
+donutPlot(data, 'facecolor', simple_colrs, 'precision', 0, 'edgecolor', 'w', 'linewidth', 2);
 ```
 <p align="center">
   <img src="examples/example_006.png">
@@ -261,7 +261,8 @@ donutPlot(data, 2, 'facecolor', simple_colrs, 'precision', 0, 'edgecolor', 'w', 
 
 ### Example 7: Color scheme
 
-By default, the colors are assigned to the categories (i.e. the various components making up the totals for each group). However, you can alter the color scheme to assign the different colors to each data series, which darkens the custom input (or default) colors for the subsequent components.
+By default, the colors are assigned to the categories (i.e. the various components making up the totals for each group). 
+However, you can alter the color scheme to assign the different colors to each data series, which darkens the custom input (or default) colors for the subsequent components.
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -270,7 +271,7 @@ data= [0.2445	0.2554	0.3237	0.1762;
        0.1402	0.3639	0.2439	0.2518];
 
 figure;
-donutPlot(data, 2, 'scheme', 'series', 'precision', 1, 'edgecolor', 'w', 'linewidth', 2);
+donutPlot(data, 'scheme', 'series', 'precision', 1, 'edgecolor', 'w', 'linewidth', 2);
 ```
 <p align="center">
   <img src="examples/example_007.png">
@@ -287,7 +288,7 @@ data= [0.2445	0.2554	0.3237	0.1762;
        0.1402	0.3639	0.2439	0.2518];
 
 figure;
-donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+donutPlot(data, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
 ```
 <p align="center">
   <img src="examples/example_008a.png">
@@ -295,7 +296,7 @@ donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'line
 
 ```matlab
 figure;
-donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+donutPlot(data, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
 colormap(cool)
 ```
 <p align="center">
@@ -320,9 +321,9 @@ lgd_pad= strings(1, numel(data) - size(data, 2) );   % array of empty strings to
 lgd_txt= ["Surface", "Below Surface", "Deep", "Very Deep", lgd_pad];
 
 figure;
-donutPlot(data, 2, 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+donutPlot(data, 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
 colormap(owt)
-legend(lgd_txt, "NumColumns", 2, "Position", [0.5 0.1 0.1 0.2])
+legend(lgd_txt, "NumColumns", 2, "Position", [0.5 0.1 0.1 0.15])
 ```
 <p align="center">
   <img src="examples/example_009a.png">
@@ -330,7 +331,7 @@ legend(lgd_txt, "NumColumns", 2, "Position", [0.5 0.1 0.1 0.2])
 
 ```matlab
 figure;
-donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
+donutPlot(data, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
 colormap(owt)
 legend(lgd_txt, "Position", [0.1 0.75 0.1 0.2])
 ```
