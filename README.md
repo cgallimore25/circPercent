@@ -34,6 +34,9 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 - **data** - A scalar, vector, or matrix of proportions/percentages. The rows are assumed to be groups, or 'series' of data, and the columns are the components to the total.
              [scalar | vector | matrix]
 
+*(Optional)*
+- **ax**   - Displays the plot in the target axes specified by handle `ax`.
+
 ## Output Arguments:
 *(Optional)*
 - **h**                - Figure handle of donut plot (arc patches, text, colors).
@@ -42,49 +45,54 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 ## Name-Value Pair Arguments:
 *(Optional; case insensitive)*
 
--**'faceColor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. `1:m`).
-                     [m x 3 vector | matrix]
+- **'dim'**         - the dimension containing each sub-cat/component of the total e.g. if data series are distributed along the rows, such that sub-categories/components are arranged along the columns, dim argument would be `2` (default). 
+                      If data series are distributed along columns and sub-cats along the rows, your dim arg would be `1`. 
+                      If input is matrix, the function assumes different groups/series are row-wise which `'dim'` overrides.
+                      [`2` (default) | non-negative integer]
 
--**'edgeColor'**   - same as `'facecolor'`, but only specify one that will be applied to all patch edges (e.g. `'w'`, or `'k'`).
-                     [RGB triplet | char]
+- **'faceColor'**   - an m x 3 vector or matrix specifying RGB triplet(s), or a 1 x m array assigning face color values directly (e.g. `1:m`).
+                      [m x 3 vector | matrix]
 
--**'textColor'**   - same as `'edgecolor'`
-                     [RGB triplet | char]
+- **'edgeColor'**   - same as `'facecolor'`, but only specify one that will be applied to all patch edges (e.g. `'w'`, or `'k'`).
+                      [RGB triplet | char]
 
--**'faceAlpha'**   - scalar in range [0, 1] specifying opacity.
+- **'textColor'**   - same as `'edgecolor'`
+                      [RGB triplet | char]
 
--**'lineWidth'**   - a positive scalar value in points (1 pt = 1/72 inches).
+- **'faceAlpha'**   - scalar in range [0, 1] specifying opacity.
 
--**'orientation'** - `'horizontal'`, `'vertical'`, or `'concentric'`; this argument only exerts effects for more than 1 data series, determining whether they are plotted from 
-                     left-to-right, top-to-bottom, or 'inside-to-outside', respectively. One letter shorthand forms are available for each.
-                     [`'horizontal'` | `'vertical'` | `'concentric'` | `'h'` | `'v'` | `'c'`]
+- **'lineWidth'**   - a positive scalar value in points (1 pt = 1/72 inches).
 
--**'precision'**   - specifies the rounding precision for text labels (i.e. the max number of decimal places to keep)
-                     [`0` | `1` | ... `n` | non-negative scalar]
+- **'orientation'** - `'horizontal'`, `'vertical'`, or `'concentric'`; this argument only exerts effects for more than 1 data series, determining whether they are plotted from 
+                      left-to-right, top-to-bottom, or 'inside-to-outside', respectively. One letter shorthand forms are available for each.
+                      [`'horizontal'` | `'vertical'` | `'concentric'` | `'h'` | `'v'` | `'c'`]
 
--**'innerRadius'** - scalar in range [0, 1] specifying the inner radius of patches as a proportion of the outer radius. A value of '0' creates a pie chart; a value of '1' creates a ring with no visible slices 
-                     [`0.65` (default) | scalar]
+- **'precision'**   - specifies the rounding precision for text labels (i.e. the max number of decimal places to keep)
+                      [`0` | `1` | ... `n` | non-negative scalar]
 
--**'outerRadius'** - a non-negative scalar specifying outer patch radius. Most applicable for `'horizontal'` or `'vertical'` orientations, whereas `'concentric'` defaults to ring widths of radius 1 and this argument is ignored.
+- **'innerRadius'** - scalar in range [0, 1] specifying the inner radius of patches as a proportion of the outer radius. A value of '0' creates a pie chart; a value of '1' creates a ring with no visible slices 
+                      [`0.65` (default) | scalar]
 
--**'startAngle'**  - scalar value in degrees specifying start angle where patches emanate. `0` corresponds to 3 o'oclock. Positive values rotate counterclockwise, negative values clockwise.
-                     [`0` (default) | scalar]
+- **'outerRadius'** - a non-negative scalar specifying outer patch radius. Most applicable for `'horizontal'` or `'vertical'` orientations, whereas `'concentric'` defaults to ring widths of radius 1 and this argument is ignored.
 
--**'direction'**   - specifies direction patches step from `'startAngle'`.
-                     [`'clockwise'`, `'cw'`, | `'counter-clockwise'`, `'ccw'` (default)]
+- **'startAngle'**  - scalar value in degrees specifying start angle where patches emanate. `0` corresponds to 3 o'oclock. Positive values rotate counterclockwise, negative values clockwise.
+                      [`0` (default) | scalar]
 
--**'scheme'**      - `'category'` or `'series'`, determines the coloring scheme. In one case, your 'color' matrix may represent the color you want each common 'category' to be for all series (default). 
-                     In another case, you may be specifying the base color you want your percentage components to be for each 'series'. In this option, subsequent percentages will be plotted darker.
-                     [`'category'` | `'series'`]
+- **'direction'**   - specifies direction patches step from `'startAngle'`.
+                      [`'clockwise'`, `'cw'`, | `'counter-clockwise'`, `'ccw'` (default)]
 
--**'patchRes'**    - a positive scalar value specifying the number of points used to represent the largest arc. Subsequent (smaller) arcs are represented in proportion to this.
-                     [`300` (default) | positive scalar]
+- **'scheme'**      - `'category'` or `'series'`, determines the coloring scheme. In one case, your 'color' matrix may represent the color you want each common 'category' to be for all series (default). 
+                      In another case, you may be specifying the base color you want your percentage components to be for each 'series'. In this option, subsequent percentages will be plotted darker.
+                      [`'category'` | `'series'`]
 
--**'showLabels'**  - permits suppression of overlaying value labels when set to false. 
-                     [`true` (default) | `false` | `0` | `1`]
+- **'patchRes'**    - a positive scalar value specifying the number of points used to represent the largest arc. Subsequent (smaller) arcs are represented in proportion to this.
+                      [`300` (default) | positive scalar]
 
--**'showLegend'**  - specific to the `'concentric'` plotting orientation, followed by a string array of legend labels equal to n groups.
-                     [string array]
+- **'showLabels'**  - permits suppression of overlaying value labels when set to false. 
+                      [`true` (default) | `false` | `0` | `1`]
+
+- **'showLegend'**  - specific to the `'concentric'` plotting orientation, followed by a string array of legend labels equal to n groups.
+                      [string array]
 
 
 ## Examples
@@ -105,7 +113,7 @@ figure;
 donutPlot(data);
 ```
 <p align="center">
-  <img src="examples/example_01.png">
+  <img src="examples/example_001.png">
 </p>
 
 Notice that the function implicitly assumes that groups are distributed along the rows. You can achieve the equivalent output in this example using:
@@ -128,7 +136,7 @@ figure;
 donutPlot(data, 2, 'orientation', 'vertical');
 ```
 <p align="center">
-  <img src="examples/example_02a.png">
+  <img src="examples/example_002a.png">
 </p>
 
 ```matlab
@@ -141,14 +149,22 @@ figure;
 donutPlot(data, 2, 'orientation', 'concentric');
 ```
 <p align="center">
-  <img src="examples/example_02b.png">
+  <img src="examples/example_002b.png">
 </p>
 
 All of these options support a shorthand specification as well by using 'h', 'v', or 'c' for the corresponding above inputs. 
 
-### Example 3: Altering the inner radius
+### Example 3: Altering inner radius & label presence
 
-The `'innerRadius'` Name,Value pair specifies the inner radius of the donut as a proportion of the outer radius. This means you can plot a simple pie chart with input '0', and invisible rings with input '1'. I do this in a loop because the function currently only supports a scalar, common radius applied to all groups in the case of matrix input. Plot one subject's data for simplicity.
+The `'innerRadius'` Name,Value pair specifies the inner radius of the donut as a proportion of the outer radius. 
+This means you can plot a simple pie chart with input `0`, and invisible rings with input `1` (default `0.65`). 
+I do this in a loop because the function currently only supports a scalar, common radius applied to all groups in the case of matrix input. 
+Plot one subject's data and remove text using the `'showLabels'` pair for simplicity. 
+
+Notice here that a second, non- Name,Val pair argument is passed to `donutPlot()` as the target axis, whereas above it was not. 
+This is the recommended usage for combining `donutPlot()` with `subplot()` calls -- especially in loops, which can behave unpredictably. 
+Subplot usage can have some advantages:  for example, individual plots have their own axis, as opposed to one axis containing all plots (default), offering greater control over custom annotations specific to one plot but not the others. 
+For example, the `dp` handle created in the loop below can be used as follows:
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -160,21 +176,26 @@ n_subj= size(data, 1);  % make variable for n groups / subjects
 
 r= 0.9:-0.3:0; 
 
-figure;  
-for s= 1:n_subj
-    subplot(1, n_subj, s)
-    donutPlot(data(4, :), 'innerRadius', r(s));
+figure;
+for s= 1:nr
+    ax(s)= subplot(1, nr, s); hold on; 
+    dp(s)= donutPlot(data(1, :), ax(s), 'innerRadius', r(s), 'showLabels', false);
 end
+
+dp(1).axH.Title.String= strcat("inner radius = ", num2str(r(1)));
+dp(4).axH.Title.String= strcat("inner radius = ", num2str(r(4)));
 ```
 <p align="center">
-  <img src="examples/example_03.png">
+  <img src="examples/example_003.png">
 </p>
 
-### Example 4: Start angle & text precision customization
+### Example 4: Start angle, direction, & text precision customization
 
-The `'startAngle'` Name,Value pair allows specification of the position where all patches for the first component emanate, corresponding to the unit circle (default '0' is 3 o'clock; '90' is midnight). Positive angles step counter-clockwise, whereas negative angles will step clockwise. 
-
-We'll add on the `'precision'` pair here too to clean up the text a bit. 
+The `'startAngle'` Name,Value pair allows specification of the angle where all first component patches emanate. 
+Positions correspond to the unit circle, so `0` is 3 o'clock (default), and `90` is midnight. 
+Positive angles step counter-clockwise, whereas negative angles will step clockwise. 
+You can further specify the direction to continue in using `'direction'` and longform or shortform values such as `'clockwise'` / `'cw'` or `'counter-clockwise'` / `'ccw'` (default). 
+Adding the `'precision'` pair here too to specify the max decimal place reported, cleaning up the text a bit. 
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
@@ -189,7 +210,7 @@ subplot(1, 2, 2)
 donutPlot(data, 2, 'startangle', 90, 'orientation', 'c', 'precision', 0);
 ```
 <p align="center">
-  <img src="examples/example_04.png">
+  <img src="examples/example_004.png">
 </p>
 
 ### Example 5: Line and color specification
@@ -211,7 +232,7 @@ subplot(1, 3, 3)
 donutPlot(data, 2, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'textcolor', 'r', 'startangle', 90, 'precision', 0);
 ```
 <p align="center">
-  <img src="examples/example_05.png">
+  <img src="examples/example_005.png">
 </p>
 
 ### Example 6: Facecolor customization
@@ -233,7 +254,7 @@ figure;
 donutPlot(data, 2, 'facecolor', simple_colrs, 'precision', 0, 'edgecolor', 'w', 'linewidth', 2);
 ```
 <p align="center">
-  <img src="examples/example_06.png">
+  <img src="examples/example_006.png">
 </p>
 
 ### Example 7: Color scheme
@@ -250,7 +271,7 @@ figure;
 donutPlot(data, 2, 'scheme', 'series', 'precision', 1, 'edgecolor', 'w', 'linewidth', 2);
 ```
 <p align="center">
-  <img src="examples/example_07.png">
+  <img src="examples/example_007.png">
 </p>
 
 ### Example 8: Usage with colormap() call
@@ -267,7 +288,7 @@ figure;
 donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0);
 ```
 <p align="center">
-  <img src="examples/example_08a.png">
+  <img src="examples/example_008a.png">
 </p>
 
 ```matlab
@@ -276,7 +297,7 @@ donutPlot(data, 2, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'line
 colormap(cool)
 ```
 <p align="center">
-  <img src="examples/example_08b.png">
+  <img src="examples/example_008b.png">
 </p>
 
 In the demo `.mlx` file, I detail some additional examples of how you could use 4 different colormaps all in the same figure (1 for each subplot). 
@@ -302,7 +323,7 @@ colormap(owt)
 legend(lgd_txt, "NumColumns", 2, "Position", [0.5 0.1 0.1 0.2])
 ```
 <p align="center">
-  <img src="examples/example_09a.png">
+  <img src="examples/example_009a.png">
 </p>
 
 ```matlab
@@ -312,5 +333,48 @@ colormap(owt)
 legend(lgd_txt, "Position", [0.1 0.75 0.1 0.2])
 ```
 <p align="center">
-  <img src="examples/example_09b.png">
+  <img src="examples/example_009b.png">
+</p>
+
+### Example 10: Ring separation
+
+Version `2.0.1` introduced `'ringSep'`, specific to the `'concentric'` style, as well as a more unified design which allows this style to obey user defined `'innerRadius'` and `'outerRadius'` arguments.
+`'ringSep'`, like `'innerRadius'`, behaves much like a duty cycle, defining a proportion of the ring's unit radius to instead be a gap between rings. 
+This opens doors for creativity in your plot design. Suppress labels once more for visibility. 
+
+```matlab
+figure;   
+subplot(1, 3, 1);
+donutPlot(data, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'precision', 0, 'innerradius', 0.7, 'showlabels', false);
+colormap(owt);
+title('Fisheye');
+subplot(1, 3, 2);
+donutPlot(data, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'none', 'precision', 0, 'innerradius', 0, 'ringsep', 0.5, 'showlabels', false);
+colormap(owt);
+title('Bullseye');
+subplot(1, 3, 3);
+donutPlot(data, 'orientation', 'c', 'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 2, 'precision', 0, 'innerradius', 0, 'ringsep', 0, 'showlabels', false);
+colormap(owt);
+title('Compact');
+```
+
+<p align="center">
+  <img src="examples/example_010.png">
+</p>
+
+### Example 11: Radial legend
+
+Also specific to the `'concentric'` style is a radial legend invoked by `'showLegend'` and its value, a string array of legend labels equal to the number of groups. 
+Take the 'Compact' style from above. 
+
+```matlab
+figure;
+donutPlot(data, 'orientation', 'c', 'innerradius', 0, 'ringsep', 0, ...
+                'facecolor', 1:4, 'edgecolor', 'w', 'linewidth', 3, ...
+                'precision', 0,  'showlegend', ["AL", "TA", "TR", "YU"]);
+colormap(owt);
+```
+
+<p align="center">
+  <img src="examples/example_011.png">
 </p>
