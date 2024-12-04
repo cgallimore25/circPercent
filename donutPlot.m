@@ -17,7 +17,7 @@
     % target, a handle to a figure or subplot axis as the plot target
 
 % Optional Name,Value pairs:
-    % 'dim',         the dimension containing each sub-cat/component of the 
+    % 'dim',         the dimension containing each sub-cat/component of the
     %                total e.g. if data series are distributed along the 
     %                rows, such that sub-categories/components are arranged
     %                along the columns, dim argument would be '2' (default)
