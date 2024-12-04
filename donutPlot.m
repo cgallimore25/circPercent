@@ -327,18 +327,15 @@ axis off;
 
 % create legend (concentric plots only)
 if def.make_lgd
-    lgd= plotRadialLgd(fig, lf, lv, gtxt, lbls_xy); 
+    H.lgdH= plotRadialLgd(fig, lf, lv, gtxt, lbls_xy); 
 end
 
-% assign output to structure
+% assign rest of outputs to structure
 H.axH=   ax; 
 H.arcH=  arcs;
 H.txtH=  lbls; 
 H.color= colors; 
 
-if exist('lgd', 'var')
-    H.lgdH= lgd;
-end
 
 end
 
