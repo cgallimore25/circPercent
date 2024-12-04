@@ -2,6 +2,7 @@
 % Author:   Connor Gallimore
 % Initial:  12/26/2023
 % Modified: 11/28/2024
+%           12/03/2024
 
 % This function creates arcs of a circle that represent percentages as the
 % proportion of total circumference. I first saw this data visualization
@@ -13,18 +14,17 @@
     % 'data', a vector or matrix of proportions/percentages. 
 
 % Optional positional argument (2nd input after data)
-    % 'dim',  the dimension containing each sub-cat/ component of the total
-    %         e.g. if data series are distributed along the rows, such that
-    %              sub-categories / components are arranged along the 
-    %              columns, dim argument would be '2'
-    %              if data series are distributed along columns and
-    %              sub-cats along the rows, your dim arg would be '1'
-    %         if input is scalar or vector, this input is not required
-    %         if input is matrix, the function defaults to dim 2 
-    %              (i.e. assumes different groups/series are row-wise),
-    %              which passing this argument overrides. 
+    % target, a handle to a figure or subplot axis as the plot target
 
 % Optional Name,Value pairs:
+    % 'dim',         the dimension containing each sub-cat/component of the 
+    %                total e.g. if data series are distributed along the 
+    %                rows, such that sub-categories/components are arranged
+    %                along the columns, dim argument would be '2' (default)
+    %                if data series are distributed along columns and
+    %                sub-cats along the rows, your dim arg would be '1'
+    %                -if input is matrix, the function assumes different 
+    %                 groups/series are row-wise which 'dim' overrides. 
     % 'facecolor',   an m x 3 vector or matrix specifying RGB triplet(s), 
     %                or a 1 x m array setting face color values (e.g. 1:m)
     % 'edgecolor',   same as 'facecolor', but only specify one that will be
@@ -79,6 +79,7 @@
 % 1.0.0 Initial release (01/04/2024)
 % 2.0.0 patch-object    (11/26/2024)
 % 2.0.1 ring-sep        (11/28/2024)
+% 2.1.1 subplot patch   (12/03/2024)
 
 % Additional notes:
 % Used 'getAlignmentFromAngle' from MATLAB's 'pie.m', all rights go to
@@ -93,7 +94,6 @@
 function H = donutPlot(data, varargin)
 
 fig= gcf; 
-ax= axes('Parent', fig); 
 
 % input parser defaults
 def.R=  10;             % outer radius
@@ -124,6 +124,7 @@ user_inputs= varargin;
 [p, f]= validateInputs(data, def, user_inputs);
 
 % assign parsed user inputs -- radii, ringsep, and ori assigned at line 160
+ax=     p.Results.ax; 
 dim=    p.Results.dim;
 a=      p.Results.startAngle; 
 d=      getPlotDirection(p.Results.direction);
@@ -137,6 +138,13 @@ prec=   p.Results.precision;
 res=    p.Results.patchRes; 
 pltx=   p.Results.showLabels; 
 gtxt=   p.Results.showLegend; 
+
+% Get handle to either the requested or a new axis, assign to figure handle
+if isempty(ax)
+    ax= gca;
+end
+
+fig.CurrentAxes= ax; 
 
 
 % force vector inputs to be row-wise
@@ -360,7 +368,8 @@ f.validBool=  @(x) islogical(x) || (isnumeric(x) && (x == 1 || x == 0));
 p= inputParser; 
 
 addRequired(p, 'data', f.validData);
-addOptional(p, 'dim', defaults.d, f.validDim);   
+addOptional(p, 'ax', [], @ishghandle)
+addParameter(p, 'dim', defaults.d, f.validDim);   
 addParameter(p, 'scheme', defaults.CS, @(x) any(validatestring(x, defaults.sch_types)))
 addParameter(p, 'faceAlpha', defaults.FA, f.validAlpha);
 addParameter(p, 'faceColor', defaults.FC, f.validFCol);
