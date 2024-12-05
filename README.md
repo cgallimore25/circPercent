@@ -24,7 +24,11 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 ## Syntax:
 `donutPlot(data)`
 
+`donutPlot(data, ax)`
+
 `donutPlot(data, Name, Value, ...)`
+
+`donutPlot(data, ax, Name, Value, ...)`
 
 `h = donutPlot(_)`
 
@@ -75,7 +79,7 @@ Catalog of changes in version `2.0.1` (formerly 'circPercent'):
 
 - **'outerRadius'** - a non-negative scalar specifying outer patch radius. Most applicable for `'horizontal'` or `'vertical'` orientations, whereas `'concentric'` defaults to ring widths of radius 1 and this argument is ignored.
 
-- **'startAngle'**  - scalar value in degrees specifying start angle where patches emanate. `0` corresponds to 3 o'oclock. Positive values rotate counterclockwise, negative values clockwise.
+- **'startAngle'**  - scalar value in degrees specifying start angle where patches emanate. `0` corresponds to 3 o'clock. Positive values rotate counterclockwise, negative values clockwise.
                       [`0` (default) | scalar]
 
 - **'direction'**   - specifies direction patches step from `'startAngle'`.
@@ -152,7 +156,7 @@ donutPlot(data, 'orientation', 'concentric');
   <img src="examples/example_002b.png">
 </p>
 
-All of these options support a shorthand specification as well by using 'h', 'v', or 'c' for the corresponding above inputs. 
+All of these options support a shorthand specification as well by using `'h'`, `'v'`, or `'c'` for the corresponding above inputs. 
 
 ### Example 3: Altering inner radius & label presence
 
@@ -239,7 +243,7 @@ donutPlot(data, 'orientation', 'c', 'edgecolor', [1 1 1], 'linewidth', 2, 'textc
 
 ### Example 6: Facecolor customization
 
-This function utilizes `distinguishable_colors.m` ([File exchange](https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)) to create colors for you, though you are free to pass your own custom color arguments in using 'facecolor' followed by an m x 3 array input, where m == size(data, 1).
+This function utilizes `distinguishable_colors.m` ([File exchange](https://www.mathworks.com/matlabcentral/fileexchange/29702-generate-maximally-perceptually-distinct-colors)) to create colors for you, though you are free to pass your own custom color arguments in using `'facecolor'` followed by an m x 3 array input, where `m == size(data, 1)`.
 
 ```matlab
 data= [0.2445	0.2554	0.3237	0.1762;
