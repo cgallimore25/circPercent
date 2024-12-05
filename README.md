@@ -120,7 +120,7 @@ Notice that the function implicitly assumes that groups are distributed along th
 ```matlab
 % Create plot
 figure;
-donutPlot(data);
+donutPlot(data, 'dim', 2);
 ```
 or '1' if your input data is transposed (column = group, rows = components).
 
